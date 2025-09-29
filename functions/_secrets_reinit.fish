@@ -24,35 +24,36 @@ function _secrets_reinit -d "Re-initialize plugin (useful after authentication c
         return 0
     end
 
-    printf "$CYAN$BOLD$RESTART_ICON Re-initializing 1Password Secrets Plugin$RESET\n"
-    printf "$GRAY━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$RESET\n\n"
-
     # Clear existing cache and environment variables
-    printf "$STEP_ICON $BOLD"Step 1:"$RESET Clearing existing cache and environment variables...\n"
-    _secrets_clear
-    printf "\n"
+    echo ""
+    echo "📍 Step 1: Clearing existing cache and environment variables..."
+    echo ""
+    _secrets_clear --quiet-footer
+    echo ""
 
     # Force 1Password re-authentication check
-    printf "$STEP_ICON $BOLD"Step 2:"$RESET Checking 1Password authentication...\n"
+    echo "📍 Step 2: Checking 1Password authentication..."
     if not op account list >/dev/null 2>&1
         printf "$DIM   Signing in to 1Password...$RESET\n"
         if not op signin
-            printf "$RED$BOLD$CROSS_MARK Failed:$RESET Could not sign in to 1Password\n" >&2
+            printf "$RED$BOLD$CROSS_MARK Failed: $RESET Could not sign in to 1Password\n" >&2
             return 1
         end
     else
-        printf "$GREEN$CHECK_MARK$RESET Already signed in to 1Password\n"
+        printf "\n$GREEN$CHECK_MARK$RESET Already signed in to 1Password\n"
     end
-    printf "\n"
 
     # Reload secrets from configuration
-    printf "$STEP_ICON $BOLD"Step 3:"$RESET Reloading secrets from configuration...\n"
-    if _load_secrets --force
-        printf "$GREEN$BOLD$CHECK_MARK Success!$RESET Plugin reinitialized\n\n"
-        printf "$GRAY   Run 'secrets status' to verify loaded secrets$RESET\n"
+    echo ""
+    echo "📍 Step 3: Reloading secrets from configuration..."
+    echo ""
+    if _secrets_load --force
+        printf "\n$DIM"
+        printf "Run 'secrets status' to verify loaded secrets$RESET\n"
     else
-        printf "$RED$BOLD$CROSS_MARK Failed:$RESET Could not reinitialize secrets\n" >&2
-        printf "$GRAY   Run 'secrets doctor' to diagnose issues$RESET\n" >&2
+        printf "\n$RED$BOLD$CROSS_MARK Failed:$RESET Could not reinitialize secrets\n" >&2
+        printf "$DIM" >&2
+        printf "Run 'secrets doctor' to diagnose issues$RESET\n" >&2
         return 1
     end
 end

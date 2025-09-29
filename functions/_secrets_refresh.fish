@@ -29,11 +29,9 @@ function _secrets_refresh -d "Refresh secrets from 1Password"
 
     if test -n "$specific_key"
         printf "$YELLOW$KEY_ICON$RESET Refreshing specific secret: $BOLD%s$RESET\n" "$specific_key"
-        printf "$GRAY   Note: Specific key refresh not yet implemented, refreshing all secrets$RESET\n"
+        _secrets_load --key="$specific_key"
     else
         printf "$CYAN$REFRESH_ICON$RESET Refreshing all secrets from 1Password...\n"
+        _secrets_load --force
     end
-
-    # Call the main load function which handles 1Password authentication and caching
-    _load_secrets --force
 end

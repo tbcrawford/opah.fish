@@ -1,4 +1,5 @@
-function _load_secrets --description "Load secrets from 1Password CLI with permanent caching"
+function _secrets_load --description "Load secrets from 1Password CLI with permanent caching"
+    argparse 'f/force' 'k/key=' -- $argv
     # Color and formatting constants
     set -l RED '\033[0;31m'
     set -l GREEN '\033[0;32m'
@@ -42,7 +43,7 @@ function _load_secrets --description "Load secrets from 1Password CLI with perma
 
     # Check if secrets mapping file exists
     if test -z "$secrets_file"
-        printf "$RED$CROSS_MARK$RESET No secrets configuration found\n" >&2
+        printf "$RED$CROSS_MARK $RESET No secrets configuration found\n" >&2
         printf "$GRAY   Expected locations:$RESET\n" >&2
         for path in $secret_paths
             printf "$GRAY   $ARROW %s$RESET\n" "$path" >&2
@@ -52,8 +53,15 @@ function _load_secrets --description "Load secrets from 1Password CLI with perma
 
     # Check for force refresh flag
     set -l force_refresh false
-    if contains -- --force $argv
+    if set -q _flag_force
         set force_refresh true
+    end
+
+    # Check for specific key to refresh
+    set -l specific_key ""
+    if set -q _flag_key
+        set specific_key "$_flag_key"
+        set force_refresh true  # Force refresh when targeting specific key
     end
 
     # Use cached secrets if they exist and force refresh is not requested
@@ -62,21 +70,26 @@ function _load_secrets --description "Load secrets from 1Password CLI with perma
         return 0
     end
 
+    # If refreshing specific key, load existing cache first then update only that key
+    if test -n "$specific_key" -a -f "$cache_file"
+        source "$cache_file"
+    end
+
     # Check if 1Password CLI is available
     if not command -q op
-        printf "$RED$CROSS_MARK$RESET 1Password CLI not found\n" >&2
+        printf "$RED$CROSS_MARK $RESET 1Password CLI not found\n" >&2
         printf "$GRAY   Install from: https://developer.1password.com/docs/cli/get-started/$RESET\n" >&2
         return 1
     end
 
     # Check if user is signed in to 1Password
     if not op account list --format=json >/dev/null 2>&1
-        printf "$RED$CROSS_MARK$RESET Not signed in to 1Password\n" >&2
+        printf "$RED$CROSS_MARK $RESET Not signed in to 1Password\n" >&2
         printf "$GRAY   Run: "$BOLD"op signin"$RESET$GRAY" to authenticate"$RESET"\n" >&2
         return 1
     end
 
-    printf "$CYAN$LOCK_ICON Loading secrets from 1Password...$RESET\n"
+    printf "$CYAN$LOCK_ICON$RESET Loading secrets from 1Password...\n"
 
     # Create cache directory if it doesn't exist
     mkdir -p "$cache_dir"
@@ -84,14 +97,20 @@ function _load_secrets --description "Load secrets from 1Password CLI with perma
     # Create temporary file for building cache
     set -l temp_cache (mktemp)
 
-    # Add header to cache file
-    echo "# Cached secrets from 1Password CLI" >"$temp_cache"
-    echo "# Generated on: $(date)" >>"$temp_cache"
-    echo "" >>"$temp_cache"
+    # If updating specific key, start with existing cache content
+    if test -n "$specific_key" -a -f "$cache_file"
+        cp "$cache_file" "$temp_cache"
+    else
+        # Add header to cache file
+        echo "# Cached secrets from 1Password CLI" >"$temp_cache"
+        echo "# Generated on: $(date)" >>"$temp_cache"
+        echo "" >>"$temp_cache"
+    end
 
     # Counter for success/failure tracking
     set -l success_count 0
     set -l total_count 0
+    set -l key_found false
 
     # Parse YAML and extract key-value pairs under 'secrets' key
     set -l in_secrets_section false
@@ -137,6 +156,15 @@ function _load_secrets --description "Load secrets from 1Password CLI with perma
 
                 # Fetch value from 1Password and set environment variable
                 if test -n "$key"; and test -n "$value"
+                    # Check if this is the specific key we're looking for
+                    if test -n "$specific_key"
+                        if test "$key" = "$specific_key"
+                            set key_found true
+                        else
+                            continue
+                        end
+                    end
+
                     printf "$DIM   $ARROW %s$RESET" "$key"
 
                     # Fetch the actual secret value from 1Password
@@ -147,14 +175,22 @@ function _load_secrets --description "Load secrets from 1Password CLI with perma
                         set secret_value (string replace -a "'" "'\\''" "$secret_value")
                         set secret_value (string replace -a "\\" "\\\\" "$secret_value")
 
-                        # Write to cache file and set the variable
-                        echo "set -gx $key '$secret_value'" >>"$temp_cache"
+                        # For specific key refresh, update the cache file by replacing the line
+                        if test -n "$specific_key"
+                            # Remove existing line for this key and add new one
+                            sed -i '' "/^set -gx $key /d" "$temp_cache" 2>/dev/null
+                            echo "set -gx $key '$secret_value'" >>"$temp_cache"
+                        else
+                            # Write to cache file normally
+                            echo "set -gx $key '$secret_value'" >>"$temp_cache"
+                        end
+                        
                         set -gx $key "$secret_value"
 
                         printf " $GREEN$CHECK_MARK$RESET\n"
                         set success_count (math $success_count + 1)
                     else
-                        printf " $RED$CROSS_MARK$RESET\n"
+                        printf " $RED$CROSS_MARK $RESET\n"
                         printf "$YELLOW   Warning: Failed to fetch from $value$RESET\n" >&2
                     end
                 end
@@ -165,13 +201,26 @@ function _load_secrets --description "Load secrets from 1Password CLI with perma
     # Move temp file to final cache location
     mv "$temp_cache" "$cache_file"
 
+    # Check if specific key was found
+    if test -n "$specific_key" -a "$key_found" = false
+        printf "$RED$BOLD$CROSS_MARK Failed: $RESET Secret '$specific_key' not found in configuration\n" >&2
+        return 1
+    end
+
     # Display results with modern formatting
-    if test $success_count -eq $total_count; and test $success_count -gt 0
-        printf "$GREEN$BOLD$CHECK_MARK Success!$RESET $GREEN%d secrets loaded$RESET\n" $success_count
+    if test -n "$specific_key"
+        if test $success_count -eq 1
+            printf "$GREEN$BOLD$CHECK_MARK Success!$RESET $GREEN%s refreshed$RESET\n" "$specific_key"
+        else
+            printf "$RED$BOLD$CROSS_MARK Failed: $RESET Unable to refresh %s\n" "$specific_key" >&2
+            return 1
+        end
+    else if test $success_count -eq $total_count; and test $success_count -gt 0
+        printf "\n$GREEN$BOLD$CHECK_MARK Success! $RESET$GREEN%d secrets loaded$RESET\n" $success_count
     else if test $success_count -gt 0
-        printf "$YELLOW$BOLD$INFO_ICON Partial success:$RESET $GREEN%d$RESET/$YELLOW%d$RESET secrets loaded\n" $success_count $total_count
+        printf "$YELLOW$BOLD$INFO_ICON Partial success: $RESET $GREEN%d$RESET/$YELLOW%d$RESET secrets loaded\n" $success_count $total_count
     else
-        printf "$RED$BOLD$CROSS_MARK Failed:$RESET No secrets loaded\n" >&2
+        printf "$RED$BOLD$CROSS_MARK Failed: $RESET No secrets loaded\n" >&2
         return 1
     end
 

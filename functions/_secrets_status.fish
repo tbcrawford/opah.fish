@@ -31,9 +31,6 @@ function _secrets_status -d "Show status of cached secrets and configuration"
         return 0
     end
 
-    printf "$CYAN$BOLD$FILE_ICON 1Password Secrets Status$RESET\n"
-    printf "$GRAY━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$RESET\n\n"
-
     # Check cache file existence
     if test -f "$cache_file"
         printf "$GREEN$CHECK_MARK$RESET Cache file: $DIM%s$RESET\n" "$cache_file"
@@ -58,13 +55,15 @@ function _secrets_status -d "Show status of cached secrets and configuration"
             end
         else
             # Show all secrets
-            printf "$BOLD"Cached secrets:"$RESET\n"
+            printf "$BOLD"
+            printf "Cached secrets:$RESET\n"
             grep "^set -gx" "$cache_file" 2>/dev/null | while read -l line
                 set -l key (echo $line | string replace -r '^set -gx (\w+) .*' '$1')
                 if set -q $key
                     printf "$DIM  $ARROW$RESET %s: $GREEN$CHECK_MARK$RESET Cached & Loaded\n" "$key"
                 else
-                    printf "$DIM  $ARROW$RESET %s: $GREEN$CHECK_MARK$RESET Cached, $RED$CROSS_MARK$RESET Not loaded\n" "$key"
+                    printf "$DIM  $ARROW$RESET %s: $GREEN$CHECK_MARK$RESET Cached, $RED$CROSS_MARK$RESET"
+                    printf "Not loaded\n" "$key"
                 end
             end
         end

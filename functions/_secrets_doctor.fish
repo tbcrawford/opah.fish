@@ -27,9 +27,6 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
         return 0
     end
 
-    printf "$CYAN$BOLD$DOCTOR_ICON 1Password Secrets Doctor$RESET\n"
-    printf "$GRAY━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$RESET\n\n"
-
     set -l all_good true
 
     # Check 1Password CLI
@@ -125,7 +122,7 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
     end
 
     # Test a simple function call
-    if functions -q _load_secrets
+    if functions -q _secrets_load
         printf "$GREEN  $CHECK_MARK$RESET Core functions are available\n"
     else
         printf "$RED  $CROSS_MARK$RESET Core functions not loaded\n"
@@ -138,14 +135,16 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
     printf "$GRAY━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$RESET\n"
     if test "$all_good" = true
         printf "$GREEN$BOLD$CHECK_MARK All systems operational!$RESET\n\n"
-        printf "$BOLD"Next steps:"$RESET\n"
-        printf "$DIM  $ARROW Run 'secrets refresh' to load secrets from 1Password$RESET\n"
-        printf "$DIM  $ARROW Run 'secrets status' to verify loaded secrets$RESET\n"
+        printf "$BOLD"
+        printf "Next steps:$RESET\n"
+        printf "  $DIM$ARROW Run 'secrets refresh' to load secrets from 1Password$RESET\n"
+        printf "  $DIM$ARROW Run 'secrets status' to verify loaded secrets$RESET\n"
     else
         printf "$YELLOW$BOLD$WARNING_ICON Some issues detected.$RESET Please address the items marked with $RED$CROSS_MARK$RESET above.\n\n"
-        printf "$BOLD"Common fixes:"$RESET\n"
-        printf "$DIM  $ARROW Install 1Password CLI: brew install 1password-cli$RESET\n"
-        printf "$DIM  $ARROW Create config file: touch %s$RESET\n" "$HOME/.config/fish/secrets.yaml"
-        printf "$DIM  $ARROW Sign in to 1Password: op signin$RESET\n"
+        printf "$BOLD"
+        printf "Common fixes:$RESET\n"
+        printf "  $DIM$ARROW Install 1Password CLI: brew install 1password-cli$RESET\n"
+        printf "  $DIM$ARROW Create config file: touch %s$RESET\n" "$HOME/.config/fish/secrets.yaml"
+        printf "  $DIM$ARROW Sign in to 1Password: op signin$RESET\n"
     end
 end

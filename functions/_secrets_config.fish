@@ -27,10 +27,7 @@ function _secrets_config -d "Show configuration file information and validate fo
         return 0
     end
 
-    printf "$CYAN$BOLD$CONFIG_ICON 1Password Secrets Configuration$RESET\n"
-    printf "$GRAY━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$RESET\n\n"
-
-    # Define possible secret file locations (same as in _load_secrets)
+    # Define possible secret file locations (same as in _secrets_load)
     set -l secret_paths \
         "$HOME/.config/fish/secrets.yaml" \
         "$HOME/.config/fish/secrets.yml" \
@@ -41,7 +38,8 @@ function _secrets_config -d "Show configuration file information and validate fo
 
     set -l secrets_file ""
 
-    printf "$BOLD"Checking configuration file locations:"$RESET\n"
+    printf "$BOLD"
+    printf "Checking configuration file locations:$RESET\n"
     for path in $secret_paths
         if test -f "$path"
             printf "$GREEN  $CHECK_MARK$RESET %s $GRAY(FOUND)$RESET\n" "$path"
@@ -70,7 +68,8 @@ function _secrets_config -d "Show configuration file information and validate fo
     printf "🕐 Last modified: $DIM%s$RESET\n\n" (stat -f '%Sm' "$secrets_file")
 
     # Validate YAML format and show secrets
-    printf "$BOLD"Configuration validation:"$RESET\n"
+    printf "$BOLD"
+    printf "Configuration validation:$RESET\n"
     set -l in_secrets_section false
     set -l base_indent ""
     set -l secret_count 0
