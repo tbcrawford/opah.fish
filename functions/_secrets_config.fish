@@ -1,15 +1,12 @@
 function _secrets_config -d "Show configuration file information and validate format"
-    # Load shared constants
-    _secrets_constants
-
     argparse 'h/help' -- $argv
 
     if set -q _flag_help
         printf "Show configuration file information and validate format\n\n"
-        printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "USAGE:"
+        printf "%s%s%s\n" (set_color --bold) "USAGE:" (set_color normal)
         printf "    secrets config\n\n"
-        printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "EXAMPLES:"
-        printf "$SECRETS_DIM    secrets config    # Show config file info and validate format$SECRETS_RESET\n"
+        printf "%s%s%s\n" (set_color --bold) "EXAMPLES:" (set_color normal)
+        printf "%s    secrets config    # Show config file info and validate format%s\n" (set_color --dim) (set_color normal)
         return 0
     end
 
@@ -22,13 +19,13 @@ function _secrets_config -d "Show configuration file information and validate fo
         "$HOME/.config/1password-secrets/secrets.yaml" \
         "$HOME/.config/1password-secrets/secrets.yml"
 
-    printf "$SECRETS_BOLD"
-    printf "Checking configuration file locations:$SECRETS_RESET\n"
+    printf "%s" (set_color --bold)
+    printf "Checking configuration file locations:%s\n" (set_color normal)
     for path in $secret_paths
         if test -f "$path"
-            printf "$SECRETS_GREEN  $SECRETS_CHECK_MARK$SECRETS_RESET %s $SECRETS_GRAY(FOUND)$SECRETS_RESET\n" "$path"
+            printf "%s  ✓%s %s %s(FOUND)%s\n" (set_color green) (set_color normal) "$path" (set_color brblack) (set_color normal)
         else
-            printf "$SECRETS_GRAY  $SECRETS_CROSS_MARK$SECRETS_RESET %s\n" "$path"
+            printf "%s  ✗%s %s\n" (set_color brblack) (set_color normal) "$path"
         end
     end
 
@@ -37,21 +34,21 @@ function _secrets_config -d "Show configuration file information and validate fo
     # Use utility function to find config file
     set -l secrets_file (_secrets_find_config)
     if test $status -ne 0
-        printf "$SECRETS_RED$SECRETS_BOLD$SECRETS_CROSS_MARK Error:$SECRETS_RESET No configuration file found!\n\n"
-        printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "Create a secrets configuration file at one of these locations:"
-        printf "$SECRETS_GREEN  $SECRETS_ARROW$SECRETS_RESET %s $SECRETS_GRAY(recommended)$SECRETS_RESET\n" "$HOME/.config/fish/secrets.yaml"
-        printf "\n$SECRETS_BOLD%s$SECRETS_RESET\n" "Example format:"
-        printf "$SECRETS_DIM%s$SECRETS_RESET\n" "secrets:"
-        printf "$SECRETS_DIM  API_KEY: \"op://vault/MyVault/API Keys/api_key\"$SECRETS_RESET\n"
-        printf "$SECRETS_DIM  DATABASE_URL: \"op://vault/MyVault/Database/connection_string\"$SECRETS_RESET\n"
+        printf "%s%s✗ Error:%s No configuration file found!\n\n" (set_color red) (set_color --bold) (set_color normal)
+        printf "%s%s%s\n" (set_color --bold) "Create a secrets configuration file at one of these locations:" (set_color normal)
+        printf "%s  →%s %s %s(recommended)%s\n" (set_color green) (set_color normal) "$HOME/.config/fish/secrets.yaml" (set_color brblack) (set_color normal)
+        printf "\n%s%s%s\n" (set_color --bold) "Example format:" (set_color normal)
+        printf "%s%s%s\n" (set_color --dim) "secrets:" (set_color normal)
+        printf "%s  API_KEY: \"op://vault/MyVault/API Keys/api_key\"%s\n" (set_color --dim) (set_color normal)
+        printf "%s  DATABASE_URL: \"op://vault/MyVault/Database/connection_string\"%s\n" (set_color --dim) (set_color normal)
         return 1
     end
 
-    printf "$SECRETS_FILE_ICON Active configuration file: $SECRETS_BOLD%s$SECRETS_RESET\n" "$secrets_file"
-    printf "🕐 Last modified: $SECRETS_DIM%s$SECRETS_RESET\n\n" (stat -f '%Sm' "$secrets_file")
+    printf "📄 Active configuration file: %s%s%s\n" (set_color --bold) "$secrets_file" (set_color normal)
+    printf "🕒 Last modified: %s%s%s\n\n" (set_color --dim) (stat -f '%Sm' "$secrets_file") (set_color normal)
 
     # Validate YAML format and show secrets
-    printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "Configuration validation:"
+    printf "%s%s%s\n" (set_color --bold) "Configuration validation:" (set_color normal)
     
     set -g __secrets_config_count 0
     
@@ -62,9 +59,9 @@ function _secrets_config -d "Show configuration file information and validate fo
         set -g __secrets_config_count (math $__secrets_config_count + 1)
         
         if string match -q "op://*" "$value"
-            printf "$SECRETS_GREEN  $SECRETS_CHECK_MARK$SECRETS_RESET %s: $SECRETS_DIM%s$SECRETS_RESET\n" "$key" "$value"
+            printf "%s  ✓%s %s: %s%s%s\n" (set_color green) (set_color normal) "$key" (set_color --dim) "$value" (set_color normal)
         else
-            printf "$SECRETS_YELLOW  $SECRETS_WARNING_ICON$SECRETS_RESET %s: $SECRETS_DIM%s$SECRETS_RESET $SECRETS_GRAY(not a 1Password reference)$SECRETS_RESET\n" "$key" "$value"
+            printf "⚠️ %s: %s%s%s %s(not a 1Password reference)%s\n" "$key" (set_color --dim) "$value" (set_color normal) (set_color brblack) (set_color normal)
         end
     end
     
@@ -79,10 +76,10 @@ function _secrets_config -d "Show configuration file information and validate fo
 
     printf "\n"
     if test $parse_result -eq 0
-        printf "$SECRETS_GREEN$SECRETS_BOLD$SECRETS_CHECK_MARK Success!$SECRETS_RESET Configuration valid\n"
-        printf "$SECRETS_INFO_ICON Found $SECRETS_BOLD%d$SECRETS_RESET secret(s) defined\n" $secret_count
+        printf "%s%s✓ Success!%s Configuration valid\n" (set_color green) (set_color --bold) (set_color normal)
+        printf "ℹ️ Found %s%d%s secret(s) defined\n" (set_color --bold) $secret_count (set_color normal)
     else
-        printf "$SECRETS_RED$SECRETS_BOLD$SECRETS_CROSS_MARK Error:$SECRETS_RESET No 'secrets:' section found in configuration file\n"
+        printf "%s%s✗ Error:%s No 'secrets:' section found in configuration file\n" (set_color red) (set_color --bold) (set_color normal)
         return 1
     end
 end

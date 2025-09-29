@@ -1,32 +1,29 @@
 function _secrets_show_help -d "Show main help text"
-    # Load shared constants
-    _secrets_constants
-
     # Function-specific icons
     set -l HELP_ICON "📖"
 
-    printf "$SECRETS_CYAN$SECRETS_BOLD$SECRETS_LOCK_ICON 1Password Secrets Management CLI For Fish$SECRETS_RESET\n\n"
+    printf "%s🔐 1Password Secrets Management CLI For Fish%s\n\n" (set_color --bold) (set_color normal)
 
-    printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "USAGE:"
+    printf "%s%s%s\n" (set_color --bold) "USAGE:" (set_color normal)
     printf "    secrets <SUBCOMMAND> [OPTIONS]\n\n"
 
-    printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "SUBCOMMANDS:"
-    printf "$SECRETS_GREEN    clear$SECRETS_RESET      Clear cached secrets and environment variables\n"
-    printf "$SECRETS_GREEN    config$SECRETS_RESET     Show configuration file information and validate format\n"
-    printf "$SECRETS_GREEN    doctor$SECRETS_RESET     Diagnose and validate complete setup\n"
-    printf "$SECRETS_GREEN    refresh$SECRETS_RESET    Refresh secrets from 1Password (with auto-login prompting)\n"
-    printf "$SECRETS_GREEN    reinit$SECRETS_RESET     Re-initialize plugin (useful after authentication changes)\n"
-    printf "$SECRETS_GREEN    status$SECRETS_RESET     Show status of cached secrets and configuration\n"
-    printf "$SECRETS_GREEN    help$SECRETS_RESET       Show this help message\n\n"
+    printf "%s%s%s\n" (set_color --bold) "SUBCOMMANDS:" (set_color normal)
+    printf "%s    clear%s      Clear cached secrets and environment variables\n" (set_color green) (set_color normal)
+    printf "%s    config%s     Show configuration file information and validate format\n" (set_color green) (set_color normal)
+    printf "%s    doctor%s     Diagnose and validate complete setup\n" (set_color green) (set_color normal)
+    printf "%s    refresh%s    Refresh secrets from 1Password (with auto-login prompting)\n" (set_color green) (set_color normal)
+    printf "%s    reinit%s     Re-initialize plugin (useful after authentication changes)\n" (set_color green) (set_color normal)
+    printf "%s    status%s     Show status of cached secrets and configuration\n" (set_color green) (set_color normal)
+    printf "%s    help%s       Show this help message\n\n" (set_color green) (set_color normal)
 
-    printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "EXAMPLES:"
-    printf "$SECRETS_DIM    secrets clear                # Clear all cached secrets$SECRETS_RESET\n"
-    printf "$SECRETS_DIM    secrets config               # Show configuration file info$SECRETS_RESET\n"
-    printf "$SECRETS_DIM    secrets doctor               # Run comprehensive diagnostics$SECRETS_RESET\n"
-    printf "$SECRETS_DIM    secrets refresh              # Refresh all secrets from 1Password$SECRETS_RESET\n"
-    printf "$SECRETS_DIM    secrets refresh GITHUB_TOKEN # Refresh specific secret$SECRETS_RESET\n"
-    printf "$SECRETS_DIM    secrets status               # Show all cached secrets status$SECRETS_RESET\n"
-    printf "$SECRETS_DIM    secrets status API_KEY       # Show status for specific secret$SECRETS_RESET\n"
+    printf "%s%s%s\n" (set_color --bold) "EXAMPLES:" (set_color normal)
+    printf "%s    secrets clear                # Clear all cached secrets%s\n" (set_color --dim) (set_color normal)
+    printf "%s    secrets config               # Show configuration file info%s\n" (set_color --dim) (set_color normal)
+    printf "%s    secrets doctor               # Run comprehensive diagnostics%s\n" (set_color --dim) (set_color normal)
+    printf "%s    secrets refresh              # Refresh all secrets from 1Password%s\n" (set_color --dim) (set_color normal)
+    printf "%s    secrets refresh GITHUB_TOKEN # Refresh specific secret%s\n" (set_color --dim) (set_color normal)
+    printf "%s    secrets status               # Show all cached secrets status%s\n" (set_color --dim) (set_color normal)
+    printf "%s    secrets status API_KEY       # Show status for specific secret%s\n" (set_color --dim) (set_color normal)
 
-    printf "\nFor detailed help on a subcommand, use: secrets <SUBCOMMAND> --help$SECRETS_RESET\n"
+    printf "\nFor detailed help on a subcommand, use: secrets <SUBCOMMAND> --help%s\n" (set_color normal)
 end

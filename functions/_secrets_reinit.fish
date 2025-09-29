@@ -1,7 +1,4 @@
 function _secrets_reinit -d "Re-initialize plugin (useful after authentication changes)"
-    # Load shared constants
-    _secrets_constants
-
     argparse 'h/help' -- $argv
 
     # Local icons specific to reinit function
@@ -10,10 +7,10 @@ function _secrets_reinit -d "Re-initialize plugin (useful after authentication c
 
     if set -q _flag_help
         printf "Re-initialize plugin (useful after authentication changes)\n\n"
-        printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "USAGE:"
+        printf "%s%s%s\n" (set_color --bold) "USAGE:" (set_color normal)
         printf "    secrets reinit\n\n"
-        printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "EXAMPLES:"
-        printf "$SECRETS_DIM    secrets reinit    # Clear cache and reload all secrets$SECRETS_RESET\n"
+        printf "%s%s%s\n" (set_color --bold) "EXAMPLES:" (set_color normal)
+        printf "%s    secrets reinit    # Clear cache and reload all secrets%s\n" (set_color --dim) (set_color normal)
         return 0
     end
 
@@ -27,13 +24,13 @@ function _secrets_reinit -d "Re-initialize plugin (useful after authentication c
     # Force 1Password re-authentication check
     echo "📍 Step 2: Checking 1Password authentication..."
     if not op account list >/dev/null 2>&1
-        printf "$SECRETS_DIM   Signing in to 1Password...$SECRETS_RESET\n"
+        printf "%s   Signing in to 1Password...%s\n" (set_color --dim) (set_color normal)
         if not op signin
-            printf "$SECRETS_RED$SECRETS_BOLD$SECRETS_CROSS_MARK Failed: $SECRETS_RESET Could not sign in to 1Password\n" >&2
+            printf "%s%s✗ Failed: %s Could not sign in to 1Password\n" (set_color red) (set_color --bold) (set_color normal) >&2
             return 1
         end
     else
-        printf "\n$SECRETS_GREEN$SECRETS_CHECK_MARK$SECRETS_RESET Already signed in to 1Password\n"
+        printf "\n%s✓%s Already signed in to 1Password\n" (set_color green) (set_color normal)
     end
 
     # Reload secrets from configuration
@@ -41,12 +38,12 @@ function _secrets_reinit -d "Re-initialize plugin (useful after authentication c
     echo "📍 Step 3: Reloading secrets from configuration..."
     echo ""
     if _secrets_load --force
-        printf "\n$SECRETS_DIM"
-        printf "Run 'secrets status' to verify loaded secrets$SECRETS_RESET\n"
+        printf "\n%s" (set_color --dim)
+        printf "Run 'secrets status' to verify loaded secrets%s\n" (set_color normal)
     else
-        printf "\n$SECRETS_RED$SECRETS_BOLD$SECRETS_CROSS_MARK Failed:$SECRETS_RESET Could not reinitialize secrets\n" >&2
-        printf "$SECRETS_DIM" >&2
-        printf "Run 'secrets doctor' to diagnose issues$SECRETS_RESET\n" >&2
+        printf "\n%s%s✗ Failed:%s Could not reinitialize secrets\n" (set_color red) (set_color --bold) (set_color normal) >&2
+        printf "%s" (set_color --dim) >&2
+        printf "Run 'secrets doctor' to diagnose issues%s\n" (set_color normal) >&2
         return 1
     end
 end

@@ -1,20 +1,18 @@
 function _secrets_load --description "Load secrets from 1Password CLI with permanent caching"
     argparse 'h/help' 'f/force' 'k/key=' -- $argv
-    # Load shared constants
-    _secrets_constants
 
     if set -q _flag_help
         printf "Load secrets from 1Password CLI with permanent caching\n\n"
-        printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "USAGE:"
+        printf "%s%s%s\n" (set_color --bold) "USAGE:" (set_color normal)
         printf "    _secrets_load [OPTIONS]\n\n"
-        printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "OPTIONS:"
+        printf "%s%s%s\n" (set_color --bold) "OPTIONS:" (set_color normal)
         printf "    -h, --help            Show this help message\n"
         printf "    -f, --force           Force refresh of all secrets\n"
         printf "    -k, --key=KEY         Refresh specific secret only\n\n"
-        printf "$SECRETS_BOLD%s$SECRETS_RESET\n" "EXAMPLES:"
-        printf "$SECRETS_DIM    _secrets_load                    # Load from cache or fetch if missing$SECRETS_RESET\n"
-        printf "$SECRETS_DIM    _secrets_load --force            # Force refresh all secrets$SECRETS_RESET\n"
-        printf "$SECRETS_DIM    _secrets_load --key=API_KEY      # Refresh only API_KEY$SECRETS_RESET\n"
+        printf "%s%s%s\n" (set_color --bold) "EXAMPLES:" (set_color normal)
+        printf "%s    _secrets_load                    # Load from cache or fetch if missing%s\n" (set_color --dim) (set_color normal)
+        printf "%s    _secrets_load --force            # Force refresh all secrets%s\n" (set_color --dim) (set_color normal)
+        printf "%s    _secrets_load --key=API_KEY      # Refresh only API_KEY%s\n" (set_color --dim) (set_color normal)
         return 0
     end
 
@@ -25,8 +23,8 @@ function _secrets_load --description "Load secrets from 1Password CLI with perma
     # Find the secrets configuration file
     set -l secrets_file (_secrets_find_config)
     if test $status -ne 0
-        printf "$SECRETS_RED$SECRETS_CROSS_MARK $SECRETS_RESET No secrets configuration found\n" >&2
-        printf "$SECRETS_GRAY   Expected locations:$SECRETS_RESET\n" >&2
+        printf "%s✗ %s No secrets configuration found\n" (set_color red) (set_color normal) >&2
+        printf "%s   Expected locations:%s\n" (set_color brblack) (set_color normal) >&2
         set -l secret_paths \
             "$HOME/.config/fish/secrets.yaml" \
             "$HOME/.config/fish/secrets.yml" \
@@ -35,7 +33,7 @@ function _secrets_load --description "Load secrets from 1Password CLI with perma
             "$HOME/.config/1password-secrets/secrets.yaml" \
             "$HOME/.config/1password-secrets/secrets.yml"
         for path in $secret_paths
-            printf "$SECRETS_GRAY   $SECRETS_ARROW %s$SECRETS_RESET\n" "$path" >&2
+            printf "%s   → %s%s\n" (set_color brblack) "$path" (set_color normal) >&2
         end
         return 1
     end
@@ -66,19 +64,19 @@ function _secrets_load --description "Load secrets from 1Password CLI with perma
 
     # Check if 1Password CLI is available
     if not command -q op
-        printf "$SECRETS_RED$SECRETS_CROSS_MARK $SECRETS_RESET 1Password CLI not found\n" >&2
-        printf "$SECRETS_GRAY   Install from: https://developer.1password.com/docs/cli/get-started/$SECRETS_RESET\n" >&2
+        printf "%s✗ %s 1Password CLI not found\n" (set_color red) (set_color normal) >&2
+        printf "%s   Install from: https://developer.1password.com/docs/cli/get-started/%s\n" (set_color brblack) (set_color normal) >&2
         return 1
     end
 
     # Check if user is signed in to 1Password
     if not op account list --format=json >/dev/null 2>&1
-        printf "$SECRETS_RED$SECRETS_CROSS_MARK $SECRETS_RESET Not signed in to 1Password\n" >&2
-        printf "$SECRETS_GRAY%s$SECRETS_BOLD%s$SECRETS_RESET$SECRETS_GRAY%s$SECRETS_RESET\n" "   Run: " "op signin" " to authenticate" >&2
+        printf "%s✗ %s Not signed in to 1Password\n" (set_color red) (set_color normal) >&2
+        printf "%s%s%s%s%s%s%s\n" (set_color brblack) "   Run: " (set_color --bold) "op signin" (set_color normal) (set_color brblack) " to authenticate" (set_color normal) >&2
         return 1
     end
 
-    printf "$SECRETS_CYAN$SECRETS_LOCK_ICON$SECRETS_RESET Loading secrets from 1Password...\n"
+    printf "🔐 Loading secrets from 1Password...\n"
 
     # Create cache directory if it doesn't exist
     mkdir -p "$cache_dir"
@@ -116,7 +114,7 @@ function _secrets_load --description "Load secrets from 1Password CLI with perma
             end
         end
 
-        printf "$SECRETS_DIM   $SECRETS_ARROW %s$SECRETS_RESET" "$key"
+        printf "%s   → %s%s" (set_color --dim) "$key" (set_color normal)
 
         # Fetch the actual secret value from 1Password
         set -l secret_value (op read "$value" 2>/dev/null)
@@ -138,11 +136,11 @@ function _secrets_load --description "Load secrets from 1Password CLI with perma
             
             set -gx $key "$secret_value"
 
-            printf " $SECRETS_GREEN$SECRETS_CHECK_MARK$SECRETS_RESET\n"
+            printf " %s✓%s\n" (set_color green) (set_color normal)
             set success_count (math $success_count + 1)
         else
-            printf " $SECRETS_RED$SECRETS_CROSS_MARK $SECRETS_RESET\n"
-            printf "$SECRETS_YELLOW   Warning: Failed to fetch from $value$SECRETS_RESET\n" >&2
+            printf " %s✗ %s\n" (set_color red) (set_color normal)
+            printf "%s   Warning: Failed to fetch from $value%s\n" (set_color yellow) (set_color normal) >&2
         end
     end
 
@@ -167,24 +165,24 @@ function _secrets_load --description "Load secrets from 1Password CLI with perma
 
     # Check if specific key was found
     if test -n "$final_specific_key" -a "$final_key_found" = false
-        printf "$SECRETS_RED$SECRETS_BOLD$SECRETS_CROSS_MARK Failed: $SECRETS_RESET Secret '$final_specific_key' not found in configuration\n" >&2
+        printf "%s%s✗ Failed:%s Secret '$final_specific_key' not found in configuration\n" (set_color red) (set_color --bold) (set_color normal) >&2
         return 1
     end
 
     # Display results with modern formatting
     if test -n "$final_specific_key"
         if test $final_success_count -eq 1
-            printf "$SECRETS_GREEN$SECRETS_BOLD$SECRETS_CHECK_MARK Success!$SECRETS_RESET $SECRETS_GREEN%s refreshed$SECRETS_RESET\n" "$final_specific_key"
+            printf "%s%s✓ Success!%s %s%s refreshed%s\n" (set_color green) (set_color --bold) (set_color normal) (set_color green) "$final_specific_key" (set_color normal)
         else
-            printf "$SECRETS_RED$SECRETS_BOLD$SECRETS_CROSS_MARK Failed: $SECRETS_RESET Unable to refresh %s\n" "$final_specific_key" >&2
+            printf "%s%s✗ Failed: %s Unable to refresh %s\n" (set_color red) (set_color --bold) (set_color normal) "$final_specific_key" >&2
             return 1
         end
     else if test $final_success_count -eq $final_total_count; and test $final_success_count -gt 0
-        printf "\n$SECRETS_GREEN$SECRETS_BOLD$SECRETS_CHECK_MARK Success! $SECRETS_RESET$SECRETS_GREEN%d secrets loaded$SECRETS_RESET\n" $final_success_count
+        printf "\n%s%s✓ Success! %s%s%d secrets loaded%s\n" (set_color green) (set_color --bold) (set_color normal) (set_color green) $final_success_count (set_color normal)
     else if test $final_success_count -gt 0
-        printf "$SECRETS_YELLOW$SECRETS_BOLD$SECRETS_INFO_ICON Partial success: $SECRETS_RESET $SECRETS_GREEN%d$SECRETS_RESET/$SECRETS_YELLOW%d$SECRETS_RESET secrets loaded\n" $final_success_count $final_total_count
+        printf "%s%sℹ️ Partial success: %s %s%d%s/%s%d%s secrets loaded\n" (set_color yellow) (set_color --bold) (set_color normal) (set_color green) $final_success_count (set_color normal) (set_color yellow) $final_total_count (set_color normal)
     else
-        printf "$SECRETS_RED$SECRETS_BOLD$SECRETS_CROSS_MARK Failed: $SECRETS_RESET No secrets loaded\n" >&2
+        printf "%s%s✗ Failed: %s No secrets loaded\n" (set_color red) (set_color --bold) (set_color normal) >&2
         return 1
     end
 
