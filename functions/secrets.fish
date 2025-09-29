@@ -1,8 +1,11 @@
 function secrets -d "1Password Secrets Management CLI"
-    # Color and formatting constants
-    set -l RED '\033[0;31m'
-    set -l RESET '\033[0m'
-    set -l CROSS_MARK "✗"
+    _secrets_constants
+
+    argparse 'h/help' -- $argv
+    if set -q _flag_help
+        _secrets_show_help
+        return 0
+    end
 
     set -l subcommand $argv[1]
 
@@ -24,7 +27,7 @@ function secrets -d "1Password Secrets Management CLI"
         case ""
             _secrets_show_help
         case "*"
-            printf "$RED$CROSS_MARK$RESET Unknown subcommand: $subcommand\n" >&2
+            printf "$SECRETS_RED$SECRETS_CROSS_MARK$SECRETS_RESET Unknown subcommand: $subcommand\n" >&2
             printf "Run 'secrets help' for usage information.\n" >&2
             return 1
     end

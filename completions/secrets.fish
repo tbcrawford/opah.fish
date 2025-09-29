@@ -23,55 +23,13 @@ end
 
 # Function to get secret names from configuration file
 function __fish_secrets_get_config_names
-    set -l secret_paths \
-        "$HOME/.config/fish/secrets.yaml" \
-        "$HOME/.config/fish/secrets.yml" \
-        "$HOME/.config/fish/.secrets.yaml" \
-        "$HOME/.config/fish/.secrets.yml" \
-        "$HOME/.config/1password-secrets/secrets.yaml" \
-        "$HOME/.config/1password-secrets/secrets.yml"
-
-    set -l secrets_file ""
-    for path in $secret_paths
-        if test -f "$path"
-            set secrets_file "$path"
-            break
+    set -l secrets_file (_secrets_find_config 2>/dev/null)
+    if test $status -eq 0
+        # Create a simple handler that just prints the key name
+        function __completion_handler
+            echo $argv[1]
         end
-    end
-
-    if test -n "$secrets_file"
-        # Parse YAML to extract secret names
-        set -l in_secrets_section false
-        set -l base_indent ""
-
-        while read -l line
-            if test -z "$line"; or string match -q "#*" "$line"
-                continue
-            end
-
-            if string match -q "secrets:" "$line"
-                set in_secrets_section true
-                set base_indent (string match -r "^(\s*)" "$line" | string sub -s 2)
-                continue
-            end
-
-            if test "$in_secrets_section" = true
-                set -l current_indent (string match -r "^(\s*)" "$line" | string sub -s 2)
-
-                if test (string length "$current_indent") -le (string length "$base_indent"); and string match -q "*:*" "$line"
-                    set in_secrets_section false
-                    continue
-                end
-
-                if test (string length "$current_indent") -gt (string length "$base_indent"); and string match -q "*:*" "$line"
-                    set -l key_value (string split -m 1 ":" "$line")
-                    set -l key (string trim $key_value[1])
-                    if test -n "$key"
-                        echo $key
-                    end
-                end
-            end
-        end <"$secrets_file"
+        _secrets_parse_yaml "$secrets_file" __completion_handler 2>/dev/null
     end
 end
 
