@@ -1,41 +1,54 @@
 function _secrets_clear -d "Clear cached secrets and environment variables"
-    if test "$argv[1]" = "--help"
-        echo "Clear cached secrets and environment variables"
-        echo ""
-        echo "USAGE:"
-        echo "    secrets clear"
-        echo ""
-        echo "EXAMPLES:"
-        echo "    secrets clear    # Clear all cached secrets and unset environment variables"
+    # Color and formatting constants
+    set -l GREEN '\033[0;32m'
+    set -l RED '\033[0;31m'
+    set -l CYAN '\033[0;36m'
+    set -l GRAY '\033[0;90m'
+    set -l BOLD '\033[1m'
+    set -l DIM '\033[2m'
+    set -l RESET '\033[0m'
+
+    # Unicode icons
+    set -l CHECK_MARK "✓"
+    set -l CROSS_MARK "✗"
+    set -l INFO_ICON ℹ
+    set -l TRASH_ICON "🗑️"
+    set -l ARROW "→"
+
+    if test "$argv[1]" = --help
+        printf "Clear cached secrets and environment variables\n\n"
+        printf "$BOLD"USAGE:"$RESET\n"
+        printf "    secrets clear\n\n"
+        printf "$BOLD"EXAMPLES:"$RESET\n"
+        printf "$DIM    secrets clear    # Clear all cached secrets and unset environment variables$RESET\n"
         return 0
     end
-    
+
     set -l cache_file "$HOME/.cache/fish/1password-secrets/secrets.fish"
     set -l cleared_count 0
-    
-    echo "Clearing cached secrets..."
-    
+
+    printf "$CYAN$TRASH_ICON$RESET Clearing cached secrets...\n"
+
     # Unset environment variables first
     if test -f "$cache_file"
-        echo "Unsetting environment variables..."
+        printf "$DIM   Unsetting environment variables...$RESET\n"
         grep "^set -gx" "$cache_file" 2>/dev/null | while read -l line
             set -l key (echo $line | string replace -r '^set -gx (\w+) .*' '$1')
             if set -q $key
                 set -e $key
                 set cleared_count (math $cleared_count + 1)
-                echo "  Unset: $key"
+                printf "$DIM   $ARROW$RESET Unset: $BOLD%s$RESET\n" "$key"
             end
         end
-        
+
         # Remove cache file
-        echo "Removing cache file..."
+        printf "$DIM   Removing cache file...$RESET\n"
         rm -f "$cache_file"
-        echo "Cache file removed: $cache_file"
+        printf "$GREEN$CHECK_MARK$RESET Cache file removed: $DIM%s$RESET\n" "$cache_file"
     else
-        echo "No cache file found at: $cache_file"
+        printf "$GRAY$INFO_ICON$RESET No cache file found at: $DIM%s$RESET\n" "$cache_file"
     end
-    
-    echo ""
-    echo "Secrets cleared successfully!"
-    echo "Run 'secrets refresh' to reload secrets from 1Password."
+
+    printf "\n$GREEN$BOLD$CHECK_MARK Success!$RESET Secrets cleared\n"
+    printf "$GRAY   Run 'secrets refresh' to reload secrets from 1Password$RESET\n"
 end

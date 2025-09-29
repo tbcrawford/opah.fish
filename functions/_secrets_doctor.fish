@@ -1,49 +1,65 @@
 function _secrets_doctor -d "Diagnose and validate complete setup"
-    if test "$argv[1]" = "--help"
-        echo "Diagnose and validate complete setup"
-        echo ""
-        echo "USAGE:"
-        echo "    secrets doctor"
-        echo ""
-        echo "EXAMPLES:"
-        echo "    secrets doctor    # Run comprehensive diagnostics"
+    # Color and formatting constants
+    set -l GREEN '\033[0;32m'
+    set -l RED '\033[0;31m'
+    set -l YELLOW '\033[0;33m'
+    set -l CYAN '\033[0;36m'
+    set -l GRAY '\033[0;90m'
+    set -l BOLD '\033[1m'
+    set -l DIM '\033[2m'
+    set -l RESET '\033[0m'
+
+    # Unicode icons
+    set -l CHECK_MARK "✓"
+    set -l CROSS_MARK "✗"
+    set -l WARNING_ICON "⚠"
+    set -l INFO_ICON ℹ
+    set -l DOCTOR_ICON "🔍"
+    set -l SUMMARY_ICON "📋"
+    set -l ARROW "→"
+
+    if test "$argv[1]" = --help
+        printf "Diagnose and validate complete setup\n\n"
+        printf "$BOLD"USAGE:"$RESET\n"
+        printf "    secrets doctor\n\n"
+        printf "$BOLD"EXAMPLES:"$RESET\n"
+        printf "$DIM    secrets doctor    # Run comprehensive diagnostics$RESET\n"
         return 0
     end
-    
-    echo "1Password Secrets Doctor"
-    echo "========================"
-    echo ""
-    
+
+    printf "$CYAN$BOLD$DOCTOR_ICON 1Password Secrets Doctor$RESET\n"
+    printf "$GRAY━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$RESET\n\n"
+
     set -l all_good true
-    
+
     # Check 1Password CLI
-    echo "🔍 Checking 1Password CLI..."
+    printf "$DOCTOR_ICON Checking 1Password CLI...\n"
     if command -q op
-        echo "  ✅ 1Password CLI (op) is installed"
+        printf "$GREEN  $CHECK_MARK$RESET 1Password CLI (op) is installed\n"
         set -l op_version (op --version 2>/dev/null || echo "unknown")
-        echo "     Version: $op_version"
+        printf "$DIM     Version: %s$RESET\n" "$op_version"
     else
-        echo "  ❌ 1Password CLI (op) is not installed"
-        echo "     Install from: https://developer.1password.com/docs/cli/get-started/"
+        printf "$RED  $CROSS_MARK$RESET 1Password CLI (op) is not installed\n"
+        printf "$GRAY     Install from: https://developer.1password.com/docs/cli/get-started/$RESET\n"
         set all_good false
     end
-    echo ""
-    
+    printf "\n"
+
     # Check 1Password authentication
-    echo "🔍 Checking 1Password authentication..."
+    printf "$DOCTOR_ICON Checking 1Password authentication...\n"
     if op account list >/dev/null 2>&1
-        echo "  ✅ Signed in to 1Password"
+        printf "$GREEN  $CHECK_MARK$RESET Signed in to 1Password\n"
         set -l accounts (op account list --format=json 2>/dev/null | jq -r '.[].email' 2>/dev/null || echo "Unable to parse accounts")
-        echo "     Accounts: $accounts"
+        printf "$DIM     Accounts: %s$RESET\n" "$accounts"
     else
-        echo "  ⚠️  Not signed in to 1Password"
-        echo "     Run: op signin"
-        echo "     (This will be done automatically when refreshing secrets)"
+        printf "$YELLOW  $WARNING_ICON$RESET Not signed in to 1Password\n"
+        printf "$GRAY     Run: op signin$RESET\n"
+        printf "$GRAY     (This will be done automatically when refreshing secrets)$RESET\n"
     end
-    echo ""
-    
+    printf "\n"
+
     # Check configuration file
-    echo "🔍 Checking configuration file..."
+    printf "$DOCTOR_ICON Checking configuration file...\n"
     set -l secret_paths \
         "$HOME/.config/fish/secrets.yaml" \
         "$HOME/.config/fish/secrets.yml" \
@@ -51,7 +67,7 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
         "$HOME/.config/fish/.secrets.yml" \
         "$HOME/.config/1password-secrets/secrets.yaml" \
         "$HOME/.config/1password-secrets/secrets.yml"
-    
+
     set -l secrets_file ""
     for path in $secret_paths
         if test -f "$path"
@@ -59,79 +75,77 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
             break
         end
     end
-    
+
     if test -n "$secrets_file"
-        echo "  ✅ Configuration file found: $secrets_file"
-        
+        printf "$GREEN  $CHECK_MARK$RESET Configuration file found: $DIM%s$RESET\n" "$secrets_file"
+
         # Quick validation
         if grep -q "secrets:" "$secrets_file"
-            echo "     Format: Valid YAML with secrets section"
+            printf "$DIM     Format: Valid YAML with secrets section$RESET\n"
             set -l secret_count (grep -A 100 "secrets:" "$secrets_file" | grep -c "op://" || echo "0")
-            echo "     1Password references: $secret_count"
+            printf "$DIM     1Password references: %s$RESET\n" "$secret_count"
         else
-            echo "  ⚠️  Configuration file missing 'secrets:' section"
+            printf "$YELLOW  $WARNING_ICON$RESET Configuration file missing 'secrets:' section\n"
             set all_good false
         end
     else
-        echo "  ❌ No configuration file found"
-        echo "     Create: $HOME/.config/fish/secrets.yaml"
+        printf "$RED  $CROSS_MARK$RESET No configuration file found\n"
+        printf "$GRAY     Create: %s$RESET\n" "$HOME/.config/fish/secrets.yaml"
         set all_good false
     end
-    echo ""
-    
+    printf "\n"
+
     # Check cache directory and file
-    echo "🔍 Checking cache system..."
+    printf "$DOCTOR_ICON Checking cache system...\n"
     set -l cache_dir "$HOME/.cache/fish/1password-secrets"
     set -l cache_file "$cache_dir/secrets.fish"
-    
+
     if test -d "$cache_dir"
-        echo "  ✅ Cache directory exists: $cache_dir"
+        printf "$GREEN  $CHECK_MARK$RESET Cache directory exists: $DIM%s$RESET\n" "$cache_dir"
     else
-        echo "  ⚠️  Cache directory missing (will be created automatically)"
+        printf "$YELLOW  $WARNING_ICON$RESET Cache directory missing (will be created automatically)\n"
     end
-    
+
     if test -f "$cache_file"
-        echo "  ✅ Cache file exists: $cache_file"
-        echo "     Last updated: $(stat -f '%Sm' '$cache_file')"
+        printf "$GREEN  $CHECK_MARK$RESET Cache file exists: $DIM%s$RESET\n" "$cache_file"
+        printf "$DIM     Last updated: %s$RESET\n" (stat -f '%Sm' "$cache_file")
         set -l cached_secrets (grep -c "^set -gx" "$cache_file" 2>/dev/null || echo "0")
-        echo "     Cached secrets: $cached_secrets"
+        printf "$DIM     Cached secrets: %s$RESET\n" "$cached_secrets"
     else
-        echo "  ⚠️  Cache file missing (run 'secrets refresh' to create)"
+        printf "$YELLOW  $WARNING_ICON$RESET Cache file missing (run 'secrets refresh' to create)\n"
     end
-    echo ""
-    
+    printf "\n"
+
     # Check Fish shell integration
-    echo "🔍 Checking Fish shell integration..."
+    printf "$DOCTOR_ICON Checking Fish shell integration...\n"
     if test -d functions
-        echo "  ✅ Running from functions directory"
+        printf "$GREEN  $CHECK_MARK$RESET Running from functions directory\n"
     else
-        echo "  ⚠️  Functions may not be in Fish path"
+        printf "$YELLOW  $WARNING_ICON$RESET Functions may not be in Fish path\n"
     end
-    
+
     # Test a simple function call
     if functions -q _load_secrets
-        echo "  ✅ Core functions are available"
+        printf "$GREEN  $CHECK_MARK$RESET Core functions are available\n"
     else
-        echo "  ❌ Core functions not loaded"
+        printf "$RED  $CROSS_MARK$RESET Core functions not loaded\n"
         set all_good false
     end
-    echo ""
-    
+    printf "\n"
+
     # Summary
-    echo "📋 Summary"
-    echo "=========="
+    printf "$CYAN$BOLD$SUMMARY_ICON Summary$RESET\n"
+    printf "$GRAY━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$RESET\n"
     if test "$all_good" = true
-        echo "✅ All systems operational!"
-        echo ""
-        echo "Next steps:"
-        echo "  • Run 'secrets refresh' to load secrets from 1Password"
-        echo "  • Run 'secrets status' to verify loaded secrets"
+        printf "$GREEN$BOLD$CHECK_MARK All systems operational!$RESET\n\n"
+        printf "$BOLD"Next steps:"$RESET\n"
+        printf "$DIM  $ARROW Run 'secrets refresh' to load secrets from 1Password$RESET\n"
+        printf "$DIM  $ARROW Run 'secrets status' to verify loaded secrets$RESET\n"
     else
-        echo "⚠️  Some issues detected. Please address the items marked with ❌ above."
-        echo ""
-        echo "Common fixes:"
-        echo "  • Install 1Password CLI: brew install 1password-cli"
-        echo "  • Create config file: touch $HOME/.config/fish/secrets.yaml"
-        echo "  • Sign in to 1Password: op signin"
+        printf "$YELLOW$BOLD$WARNING_ICON Some issues detected.$RESET Please address the items marked with $RED$CROSS_MARK$RESET above.\n\n"
+        printf "$BOLD"Common fixes:"$RESET\n"
+        printf "$DIM  $ARROW Install 1Password CLI: brew install 1password-cli$RESET\n"
+        printf "$DIM  $ARROW Create config file: touch %s$RESET\n" "$HOME/.config/fish/secrets.yaml"
+        printf "$DIM  $ARROW Sign in to 1Password: op signin$RESET\n"
     end
 end
