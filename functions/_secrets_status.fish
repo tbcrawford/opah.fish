@@ -23,8 +23,8 @@ function _secrets_status -d "Show status of cached secrets and configuration"
 
     # Check cache file existence
     if test -f "$cache_file"
-        _secrets_file "Cache file: $cache_file"
-        _secrets_info "Last updated: $(stat -f '%Sm' "$cache_file")"
+        _secrets_file "Cache file: $(_secrets_dim $cache_file)"
+        _secrets_info "Last updated: $(_secrets_dim "$(stat -f '%Sm' "$cache_file")")"
 
         # Count cached secrets
         set -l secret_count (grep -c "^set -gx" "$cache_file" 2>/dev/null || echo "0")
@@ -51,9 +51,9 @@ function _secrets_status -d "Show status of cached secrets and configuration"
             grep "^set -gx" "$cache_file" 2>/dev/null | while read -l line
                 set -l key (echo $line | string replace -r '^set -gx (\w+) .*' '$1')
                 if set -q $key
-                    printf "  %s: %s✓%s Cached & Loaded\n" "$key" $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET
+                    printf "    %s%s:%s %s✓%s Cached & Loaded\n" $__SECRETS_COLOR_DIM "$key" $__SECRETS_COLOR_RESET $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET
                 else
-                    printf "  %s: %s✓%s Cached, %s✗%s Not loaded\n" "$key" $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET $__SECRETS_COLOR_ERROR $__SECRETS_COLOR_RESET
+                    printf "    %s%s:%s %s✓%s Cached, %s✗%s Not loaded\n" $__SECRETS_COLOR_DIM "$key" $__SECRETS_COLOR_RESET $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET $__SECRETS_COLOR_ERROR $__SECRETS_COLOR_RESET
                 end
             end
         end

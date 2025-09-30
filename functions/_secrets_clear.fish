@@ -26,18 +26,18 @@ function _secrets_clear -d "Clear cached secrets and environment variables"
 
     # Unset environment variables first
     if test -f "$cache_file"
-        printf "\n  Unsetting environment variables...\n"
+        printf "\n  %sUnsetting environment variables...%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
         grep "^set -gx" "$cache_file" 2>/dev/null | while read -l line
             set -l key (echo $line | string replace -r '^set -gx (\w+) .*' '$1')
             if set -q $key
                 set -e $key
                 set cleared_count (math $cleared_count + 1)
-                printf "    %s %s✓%s\n" "$key" $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET
+                printf "    %s%s%s %s✓%s\n" $__SECRETS_COLOR_DIM "$key" $__SECRETS_COLOR_RESET $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET
             end
         end
 
         # Remove cache file
-        printf "\n  Removing cache file...\n"
+        printf "\n  %sRemoving cache file...%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
         rm -f "$cache_file"
         printf "    %s✓%s Cache file removed: %s%s%s\n" $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET $__SECRETS_COLOR_DIM "$cache_file" $__SECRETS_COLOR_RESET
     else

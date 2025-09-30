@@ -23,11 +23,11 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
         printf "  "
         _secrets_success "1Password CLI (op) is installed"
         set -l op_version (op --version 2>/dev/null || echo "unknown")
-        printf "    Version: %s\n" "$op_version"
+        printf "    %sVersion: %s%s\n" $__SECRETS_COLOR_DIM "$op_version" $__SECRETS_COLOR_RESET
     else
         printf "  "
         _secrets_error "1Password CLI (op) is not installed"
-        printf "    Install from: https://developer.1password.com/docs/cli/get-started/\n"
+        printf "    %sInstall from: https://developer.1password.com/docs/cli/get-started/%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
         set all_good false
     end
 
@@ -39,12 +39,12 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
         printf "  "
         _secrets_success "Signed in to 1Password"
         set -l accounts (op account list --format=json 2>/dev/null | jq -r '.[].email' 2>/dev/null || echo "Unable to parse accounts")
-        printf "    Accounts: %s\n" "$accounts"
+        printf "    %sAccounts: %s%s\n" $__SECRETS_COLOR_DIM "$accounts" $__SECRETS_COLOR_RESET
     else
         printf "  "
         _secrets_warning "Not signed in to 1Password"
-        printf "    Run: op signin\n"
-        printf "    (This will be done automatically when refreshing secrets)\n"
+        printf "    %sRun: op signin%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
+        printf "    %s(This will be done automatically when refreshing secrets)%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
     end
 
     printf "\n"
@@ -69,13 +69,13 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
 
     if test -n "$secrets_file"
         printf "  "
-        _secrets_success "Configuration file found: $secrets_file"
+        _secrets_success "Configuration file found: $(_secrets_dim $secrets_file)"
 
         # Quick validation
         if grep -q "secrets:" "$secrets_file"
-            printf "    Format: Valid YAML with secrets section\n"
+            printf "    %sFormat: Valid YAML with secrets section%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
             set -l secret_count (grep -A 100 "secrets:" "$secrets_file" | grep -c "op://" || echo "0")
-            printf "    1Password references: %s\n" "$secret_count"
+            printf "    %s1Password references: %s%s\n" $__SECRETS_COLOR_DIM "$secret_count" $__SECRETS_COLOR_RESET
         else
             printf "  "
             _secrets_warning "Configuration file missing 'secrets:' section"
@@ -84,7 +84,7 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
     else
         printf "  "
         _secrets_error "No configuration file found"
-        printf "    Create: %s\n" "$HOME/.config/fish/secrets.yaml"
+        printf "    %sCreate: %s%s\n" $__SECRETS_COLOR_DIM "$HOME/.config/fish/secrets.yaml" $__SECRETS_COLOR_RESET
         set all_good false
     end
 
@@ -97,7 +97,7 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
 
     if test -d "$cache_dir"
         printf "  "
-        _secrets_success "Cache directory exists: $cache_dir"
+        _secrets_success "Cache directory exists: $(_secrets_dim $cache_dir)"
     else
         printf "  "
         _secrets_warning "Cache directory missing (will be created automatically)"
@@ -105,10 +105,10 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
 
     if test -f "$cache_file"
         printf "  "
-        _secrets_success "Cache file exists: $cache_file"
-        printf "    Last updated: %s\n" "$(stat -f '%Sm' "$cache_file")"
+        _secrets_success "Cache file exists: $(_secrets_dim $cache_file)"
+        printf "    %sLast updated: %s%s\n" $__SECRETS_COLOR_DIM "$(stat -f '%Sm' "$cache_file")" $__SECRETS_COLOR_RESET
         set -l cached_secrets (grep -c "^set -gx" "$cache_file" 2>/dev/null || echo "0")
-        printf "    Cached secrets: %s\n" "$cached_secrets"
+        printf "    %sCached secrets: %s%s\n" $__SECRETS_COLOR_DIM "$cached_secrets" $__SECRETS_COLOR_RESET
     else
         printf "  "
         _secrets_warning "Cache file missing (run 'secrets refresh' to create)"
@@ -144,14 +144,14 @@ function _secrets_doctor -d "Diagnose and validate complete setup"
     if test "$all_good" = true
         _secrets_success "All systems operational!"
         
-        printf "\nNext steps:\n"
-        printf "  Run 'secrets refresh' to load secrets from 1Password\n"
-        printf "  Run 'secrets status' to verify loaded secrets\n"
+        printf "\n%sNext steps:%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
+        printf "    %sRun 'secrets refresh' to load secrets from 1Password%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
+        printf "    %sRun 'secrets status' to verify loaded secrets%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
     else
         printf "%s⚠ Some issues detected. Please address the items marked with ✗ above.%s\n\n" $__SECRETS_COLOR_WARNING $__SECRETS_COLOR_RESET
-        printf "Common fixes:\n"
-        printf "  Install 1Password CLI: brew install 1password-cli\n"
-        printf "  Create config file: touch %s\n" "$HOME/.config/fish/secrets.yaml"
-        printf "  Sign in to 1Password: op signin\n"
+        printf "%sCommon fixes:%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
+        printf "    %sInstall 1Password CLI: brew install 1password-cli%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
+        printf "    %sCreate config file: touch %s%s\n" $__SECRETS_COLOR_DIM "$HOME/.config/fish/secrets.yaml" $__SECRETS_COLOR_RESET
+        printf "    %sSign in to 1Password: op signin%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
     end
 end

@@ -27,9 +27,9 @@ function _secrets_config -d "Show configuration file information and validate fo
     printf "Checking configuration file locations:\n"
     for path in $secret_paths
         if test -f "$path"
-            _secrets_success "$path (FOUND)"
+            _secrets_success "$(_secrets_dim $path) (FOUND)"
         else
-            _secrets_error "$path"
+            _secrets_error "$(_secrets_dim $path)"
         end
     end
 
@@ -48,8 +48,8 @@ function _secrets_config -d "Show configuration file information and validate fo
         return 1
     end
 
-    _secrets_file "Active configuration file: $secrets_file"
-    _secrets_info "Last modified: $(stat -f '%Sm' "$secrets_file")"
+    _secrets_file "Active configuration file: $(_secrets_dim $secrets_file)"
+    _secrets_info "Last modified: $(_secrets_dim "$(stat -f '%Sm' "$secrets_file")")"
 
     # Validate YAML format and show secrets
     printf "\nConfiguration validation:\n"
@@ -63,9 +63,9 @@ function _secrets_config -d "Show configuration file information and validate fo
         set -g __secrets_config_count (math $__secrets_config_count + 1)
         
         if string match -q "op://*" "$value"
-            printf "  %s✓%s %s: %s%s%s\n" $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET "$key" $__SECRETS_COLOR_DIM "$value" $__SECRETS_COLOR_RESET
+            printf "    %s✓%s %s%s:%s %s%s%s\n" $__SECRETS_COLOR_SUCCESS $__SECRETS_COLOR_RESET $__SECRETS_COLOR_DIM "$key" $__SECRETS_COLOR_RESET $__SECRETS_COLOR_DIM "$value" $__SECRETS_COLOR_RESET
         else
-            printf "  %s⚠%s %s: %s%s%s %s(not a 1Password reference)%s\n" $__SECRETS_COLOR_WARNING $__SECRETS_COLOR_RESET "$key" $__SECRETS_COLOR_DIM "$value" $__SECRETS_COLOR_RESET $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
+            printf "    %s⚠%s %s%s:%s %s%s%s %s(not a 1Password reference)%s\n" $__SECRETS_COLOR_WARNING $__SECRETS_COLOR_RESET $__SECRETS_COLOR_DIM "$key" $__SECRETS_COLOR_RESET $__SECRETS_COLOR_DIM "$value" $__SECRETS_COLOR_RESET $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
         end
     end
     
@@ -81,7 +81,7 @@ function _secrets_config -d "Show configuration file information and validate fo
     printf "\n"
     if test $parse_result -eq 0
         _secrets_success "Success! Configuration valid"
-        _secrets_info "Found $secret_count secret(s) defined"
+        _secrets_info "Found $(_secrets_dim $secret_count) secret(s) defined"
     else
         _secrets_error "Error: No 'secrets:' section found in configuration file"
         return 1

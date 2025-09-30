@@ -23,7 +23,7 @@ function _secrets_reinit -d "Re-initialize plugin after authentication changes"
     # Force 1Password re-authentication check
     _secrets_step "2" "Checking 1Password authentication..."
     if not op account list >/dev/null 2>&1
-        printf "\n%s   Signing in to 1Password...%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
+        printf "\n%s       Signing in to 1Password...%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
         if not op signin
             _secrets_error "Failed: Could not sign in to 1Password" >&2
             return 1
