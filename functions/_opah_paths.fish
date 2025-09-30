@@ -22,8 +22,8 @@ function _opah_get_config_paths -d "Get list of possible configuration file path
     echo "$HOME/.config/fish/secrets.yml"
     echo "$HOME/.config/fish/.secrets.yaml"
     echo "$HOME/.config/fish/.secrets.yml"
-    echo "$HOME/.config/1password-secrets/secrets.yaml"
-    echo "$HOME/.config/1password-secrets/secrets.yml"
+    echo "$HOME/.config/opah/secrets.yaml"
+    echo "$HOME/.config/opah/secrets.yml"
 end
 
 #
@@ -35,7 +35,7 @@ end
 # @return Cache directory path (stdout)
 #
 function _opah_get_cache_dir -d "Get cache directory path"
-    echo "$__fish_cache_dir/1password-secrets"
+    echo "$__fish_cache_dir/opah"
 end
 
 #

@@ -1,10 +1,10 @@
-# 🐠 1password-secrets.fish
+# 🐠 opah.fish
 
 A Fish shell plugin for seamless 1Password secrets management with automatic loading and intelligent caching.
 
 ## 🎯 What is this?
 
-`1password-secrets.fish` is a Fish shell plugin that automatically loads secrets from 1Password into your shell environment variables. It features intelligent caching to minimize 1Password CLI calls and includes `opah` (a playful nod to the [opah fish](https://en.wikipedia.org/wiki/Opah) and the 1Password CLI `op`), a comprehensive CLI for managing your secrets.
+`opah.fish` is a Fish shell plugin that automatically loads secrets from 1Password into your shell environment variables. It features intelligent caching to minimize 1Password CLI calls and includes `opah` (a playful nod to the [opah fish](https://en.wikipedia.org/wiki/Opah) and the 1Password CLI `op`), a comprehensive CLI for managing your secrets.
 
 ### Key Features
 
@@ -25,13 +25,13 @@ A Fish shell plugin for seamless 1Password secrets management with automatic loa
 ### Using Fisher
 
 ```fish
-fisher install tbcrawford/1password-secrets.fish
+fisher install tbcrawford/opah.fish
 ```
 
 ### Using Oh My Fish
 
 ```fish
-omf install https://github.com/tbcrawford/1password-secrets.fish
+omf install https://github.com/tbcrawford/opah.fish
 ```
 
 ### Manual Installation
@@ -39,7 +39,7 @@ omf install https://github.com/tbcrawford/1password-secrets.fish
 Clone the repository to your Fish functions directory:
 
 ```fish
-git clone https://github.com/tbcrawford/1password-secrets.fish.git ~/.config/fish/conf.d/1password-secrets
+git clone https://github.com/tbcrawford/opah.fish.git ~/.config/fish/conf.d/opah
 ```
 
 ## ⚙️ Configuration
@@ -50,8 +50,8 @@ Create a configuration file at one of these locations (checked in order):
 2. `~/.config/fish/secrets.yml`
 3. `~/.config/fish/.secrets.yaml`
 4. `~/.config/fish/.secrets.yml`
-5. `~/.config/1password-secrets/secrets.yaml`
-6. `~/.config/1password-secrets/secrets.yml`
+5. `~/.config/opah/secrets.yaml`
+6. `~/.config/opah/secrets.yml`
 
 ### Configuration Format
 
@@ -96,7 +96,7 @@ opah status API_KEY
 
 **Example output:**
 ```
-📁 Cache file: ~/.cache/fish/1password-secrets/secrets.fish
+📁 Cache file: ~/.cache/fish/opah/secrets.fish
 ℹ Last updated: Sep 30 12:34:56 2025
 
 ℹ Cached secrets: 5
@@ -197,8 +197,8 @@ This command checks:
     1Password references: 5
 
 🔍 Checking cache system...
-  ✓ Cache directory exists: ~/.cache/fish/1password-secrets
-  ✓ Cache file exists: ~/.cache/fish/1password-secrets/secrets.fish
+  ✓ Cache directory exists: ~/.cache/fish/opah
+  ✓ Cache file exists: ~/.cache/fish/opah/secrets.fish
     Last updated: Sep 30 12:34:56 2025
     Cached secrets: 5
 
@@ -250,7 +250,7 @@ opah clear --help
 
 When you start a new Fish shell session, the plugin automatically:
 
-1. Checks for cached secrets in `~/.cache/fish/1password-secrets/secrets.fish`
+1. Checks for cached secrets in `~/.cache/fish/opah/secrets.fish`
 2. If cache exists and is valid, loads secrets from cache (fast!)
 3. If cache is missing, fetches secrets from 1Password using the CLI
 4. Stores fetched secrets in cache for future sessions
@@ -258,7 +258,7 @@ When you start a new Fish shell session, the plugin automatically:
 
 ### Caching Strategy
 
-- **Cache location**: `~/.cache/fish/1password-secrets/secrets.fish`
+- **Cache location**: `~/.cache/fish/opah/secrets.fish`
 - **Cache format**: Fish shell script with `set -gx` commands
 - **Cache invalidation**: Manual (use `opah refresh` or `opah clear`)
 - **Selective updates**: Refresh individual secrets with `opah refresh SECRET_NAME`
@@ -307,11 +307,11 @@ export DATABASE_URL  # Already exported by opah!
 
 ### Conditional Loading
 
-Want to skip automatic loading in certain scenarios? You can disable the auto-load by removing or commenting out the `conf.d/1password-secrets.fish` file.
+Want to skip automatic loading in certain scenarios? You can disable the auto-load by removing or commenting out the `conf.d/opah.fish` file.
 
 ## 🔒 Security Considerations
 
-- **Cache storage**: Cached secrets are stored in plain text in `~/.cache/fish/1password-secrets/secrets.fish`
+- **Cache storage**: Cached secrets are stored in plain text in `~/.cache/fish/opah/secrets.fish`
   - Ensure your home directory has appropriate permissions
   - Consider encrypting your home directory
   - Use `opah clear` when done with a session on shared machines
@@ -380,7 +380,7 @@ opah reinit
 
 ## 📝 Example Workflow
 
-Here's a typical workflow for using `1password-secrets.fish`:
+Here's a typical workflow for using `opah.fish`:
 
 ```fish
 # 1. Initial setup

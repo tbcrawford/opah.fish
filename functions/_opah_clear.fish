@@ -30,7 +30,7 @@ function _opah_clear -d "Clear cached secrets and environment variables"
         return 0
     end
 
-    set -l cache_file "$__fish_cache_dir/1password-secrets/secrets.fish"
+    set -l cache_file "$__fish_cache_dir/opah/secrets.fish"
     set -l cleared_count 0
 
     _opah_process "Clearing cached secrets..."

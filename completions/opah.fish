@@ -15,7 +15,7 @@ complete -c opah -f -n "__fish_seen_subcommand_from status refresh clear config 
 
 # Function to get cached secret names from cache file
 function __fish_opah_get_cached_names
-    set -l cache_file "$HOME/.cache/fish/1password-secrets/secrets.fish"
+    set -l cache_file "$HOME/.cache/fish/opah/secrets.fish"
     if test -f "$cache_file"
         grep "^set -gx" "$cache_file" 2>/dev/null | string replace -r '^set -gx (\w+) .*' '$1'
     end
