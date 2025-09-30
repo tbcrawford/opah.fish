@@ -1,3 +1,14 @@
+#
+# 1Password Secrets Management CLI
+#
+# Main entry point for the opah CLI tool. Routes subcommands to their
+# corresponding implementation functions. Provides a unified interface for
+# managing 1Password secrets in the Fish shell.
+#
+# @param subcommand The subcommand to execute (status, refresh, clear, config, doctor, reinit, help)
+# @param argv Additional arguments passed to the subcommand
+# @return 0 on success, 1 if unknown subcommand
+#
 function opah -d "1Password Secrets Management CLI"
     # Ensure UI functions are available
     if not functions -q _opah_ui

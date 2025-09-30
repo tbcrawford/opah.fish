@@ -1,3 +1,15 @@
+#
+# Parse secrets from YAML configuration file and call handler function for each secret
+#
+# Parses a YAML configuration file looking for a "secrets:" section and extracts
+# key-value pairs from it. For each secret found, calls the provided handler
+# function with the key and value as arguments. This allows flexible processing
+# of secrets without hardcoding the action to take for each secret.
+#
+# @param config_file The path to the YAML configuration file
+# @param handler_function The name of the function to call for each secret (will be called with key and value)
+# @return 0 if secrets section found and processed, 1 if config file not found or invalid arguments
+#
 function _opah_parse_yaml -d "Parse secrets from YAML configuration file and call handler function for each secret"
     set -l config_file $argv[1]
     set -l handler_function $argv[2]

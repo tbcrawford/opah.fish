@@ -1,3 +1,14 @@
+#
+# Re-initialize plugin after authentication changes
+#
+# Performs a complete re-initialization of the opah plugin by clearing the cache,
+# verifying 1Password authentication (and prompting for sign-in if needed), and
+# reloading all secrets from the configuration. This is useful after changing
+# 1Password accounts or when authentication has expired.
+#
+# @param -h/--help Shows usage information and examples
+# @return 0 on success, 1 if sign-in fails or secrets cannot be reloaded
+#
 function _opah_reinit -d "Re-initialize plugin after authentication changes"
     # Ensure UI functions are available
     if not functions -q _opah_ui

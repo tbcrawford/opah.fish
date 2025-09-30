@@ -1,13 +1,32 @@
+#
+# Show status of cached secrets and configuration
+#
+# Displays the current status of cached secrets including cache file location,
+# last update time, and a list of all cached secrets. Can show status for all
+# secrets or a specific secret. Indicates whether each secret is cached and
+# loaded into the environment.
+#
+# @param SECRET_NAME Optional secret name to show status for only that secret
+# @param -h/--help Shows usage information and examples
+# @return 0 always succeeds
+#
 function _opah_status -d "Show status of cached secrets and configuration"
-    # Ensure UI functions are available
-    if not functions -q _opah_ui
-        source (status dirname)/_opah_ui.fish
+    # Initialize UI functions
+    if not functions -q _opah_init_ui
+        source (status dirname)/_opah_init_ui.fish
     end
+    _opah_init_ui
     
     argparse 'h/help' -- $argv
 
     set -l specific_key $argv[1]
-    set -l cache_file "$HOME/.cache/fish/1password-secrets/secrets.fish"
+    
+    # Ensure path utilities are available
+    if not functions -q _opah_get_cache_file
+        source (status dirname)/_opah_paths.fish
+    end
+    
+    set -l cache_file (_opah_get_cache_file)
 
     if set -q _flag_help
         printf "Show status of cached secrets and configuration\n\n"
@@ -25,6 +44,14 @@ function _opah_status -d "Show status of cached secrets and configuration"
     if test -f "$cache_file"
         _opah_file "Cache file: $(_opah_dim $cache_file)"
         _opah_info "Last updated: $(_opah_dim "$(stat -f '%Sm' "$cache_file")")"
+        
+        # Check cache file permissions
+        set -l cache_perms (stat -f "%A" "$cache_file" 2>/dev/null || echo "unknown")
+        if test "$cache_perms" = "600"
+            _opah_info "Permissions: $(_opah_dim "Secure (600)")"
+        else
+            _opah_warning "Permissions: $cache_perms (should be 600)"
+        end
 
         # Count cached secrets
         set -l secret_count (grep -c "^set -gx" "$cache_file" 2>/dev/null || echo "0")

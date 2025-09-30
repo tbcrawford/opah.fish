@@ -1,3 +1,12 @@
+#
+# Show main help text
+#
+# Displays the main help text for the opah CLI including usage information,
+# available subcommands, and examples. This is the default help screen shown
+# when running 'opah help' or 'opah' without arguments.
+#
+# @return 0 always succeeds
+#
 function _opah_show_help -d "Show main help text"
     printf "%s🐠 Fishy 1Password Secrets Management CLI%s\n\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
 

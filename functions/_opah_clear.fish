@@ -1,3 +1,14 @@
+#
+# Clear cached secrets and environment variables
+#
+# Unsets all environment variables that were loaded from 1Password secrets
+# and removes the cache file. This function provides options to control
+# the output verbosity.
+#
+# @param -h/--help Shows usage information and examples
+# @param -q/--quiet-footer Skips the footer help message
+# @return 0 on success
+#
 function _opah_clear -d "Clear cached secrets and environment variables"
     # Ensure UI functions are available
     if not functions -q _opah_ui

@@ -1,8 +1,22 @@
+#
+# Load secrets from 1Password CLI with permanent caching
+#
+# Loads secrets from 1Password and caches them permanently for performance.
+# Can load from cache, force refresh all secrets, or refresh a specific secret.
+# Validates 1Password CLI availability and authentication before fetching secrets.
+# Creates environment variables for each secret defined in the configuration file.
+#
+# @param -h/--help Shows usage information and examples
+# @param -f/--force Forces refresh of all secrets from 1Password
+# @param -k/--key=KEY Refreshes only the specified secret key
+# @return 0 on success, 1 if configuration not found or 1Password CLI unavailable
+#
 function _opah_load --description "Load secrets from 1Password CLI with permanent caching"
-    # Ensure UI functions are available
-    if not functions -q _opah_ui
-        source (status dirname)/_opah_ui.fish
+    # Initialize UI functions
+    if not functions -q _opah_init_ui
+        source (status dirname)/_opah_init_ui.fish
     end
+    _opah_init_ui
     
     argparse 'h/help' 'f/force' 'k/key=' -- $argv
 
@@ -21,22 +35,21 @@ function _opah_load --description "Load secrets from 1Password CLI with permanen
         return 0
     end
 
-    # Initialize cache directory
-    set -l cache_dir "$__fish_cache_dir/1password-secrets"
-    set -l cache_file "$cache_dir/secrets.fish"
+    # Ensure path utilities are available
+    if not functions -q _opah_get_cache_dir
+        source (status dirname)/_opah_paths.fish
+    end
+
+    # Initialize cache directory and file paths
+    set -l cache_dir (_opah_get_cache_dir)
+    set -l cache_file (_opah_get_cache_file)
 
     # Find the opah configuration file
     set -l secrets_file (_opah_find_config)
     if test $status -ne 0
         _opah_error "No opah configuration found" >&2
         printf "%s   Expected locations:%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET >&2
-        set -l secret_paths \
-            "$HOME/.config/fish/secrets.yaml" \
-            "$HOME/.config/fish/secrets.yml" \
-            "$HOME/.config/fish/.secrets.yaml" \
-            "$HOME/.config/fish/.secrets.yml" \
-            "$HOME/.config/1password-secrets/secrets.yaml" \
-            "$HOME/.config/1password-secrets/secrets.yml"
+        set -l secret_paths (_opah_get_config_paths)
         for path in $secret_paths
             printf "%s   %s%s\n" $__OPAH_COLOR_DIM "$path" $__OPAH_COLOR_RESET >&2
         end
@@ -50,7 +63,7 @@ function _opah_load --description "Load secrets from 1Password CLI with permanen
     end
 
     # Check for specific key to refresh
-    set -g specific_key ""
+    set -l specific_key ""
     if set -q _flag_key
         set specific_key "$_flag_key"
         set force_refresh true  # Force refresh when targeting specific key
@@ -86,8 +99,9 @@ function _opah_load --description "Load secrets from 1Password CLI with permanen
     # Create cache directory if it doesn't exist
     mkdir -p "$cache_dir"
 
-    # Create temporary file for building cache
-    set -g temp_cache (mktemp)
+    # Create temporary file for building cache with secure permissions
+    set -l temp_cache (mktemp)
+    chmod 600 "$temp_cache"
 
     # If updating specific key, start with existing cache content
     if test -n "$specific_key" -a -f "$cache_file"
@@ -99,21 +113,25 @@ function _opah_load --description "Load secrets from 1Password CLI with permanen
         echo "" >>"$temp_cache"
     end
 
-    # Counter for success/failure tracking (using global scope for function access)
-    set -g success_count 0
-    set -g total_count 0
-    set -g key_found false
+    # Use global variables for tracking to work with the handler function
+    set -g __OPAH_SUCCESS_COUNT 0
+    set -g __OPAH_TOTAL_COUNT 0
+    set -g __OPAH_KEY_FOUND false
+    set -g __OPAH_TEMP_CACHE "$temp_cache"
+    set -g __OPAH_SPECIFIC_KEY "$specific_key"
 
     # Create handler function to process each secret
-    function __load_handler
+    function __load_handler --description "Handle individual secret loading"
         set -l key $argv[1]
         set -l value $argv[2]
-        set total_count (math $total_count + 1)
+        
+        # Increment total count
+        set -g __OPAH_TOTAL_COUNT (math $__OPAH_TOTAL_COUNT + 1)
 
         # Check if this is the specific key we're looking for
-        if test -n "$specific_key"
-            if test "$key" = "$specific_key"
-                set key_found true
+        if test -n "$__OPAH_SPECIFIC_KEY"
+            if test "$key" = "$__OPAH_SPECIFIC_KEY"
+                set -g __OPAH_KEY_FOUND true
             else
                 return 0
             end
@@ -130,19 +148,19 @@ function _opah_load --description "Load secrets from 1Password CLI with permanen
             set secret_value (string replace -a "\\" "\\\\" "$secret_value")
 
             # For specific key refresh, update the cache file by replacing the line
-            if test -n "$specific_key"
+            if test -n "$__OPAH_SPECIFIC_KEY"
                 # Remove existing line for this key and add new one
-                sed -i '' "/^set -gx $key /d" "$temp_cache" 2>/dev/null
-                echo "set -gx $key '$secret_value'" >>"$temp_cache"
+                sed -i '' "/^set -gx $key /d" "$__OPAH_TEMP_CACHE" 2>/dev/null
+                echo "set -gx $key '$secret_value'" >>"$__OPAH_TEMP_CACHE"
             else
                 # Write to cache file normally
-                echo "set -gx $key '$secret_value'" >>"$temp_cache"
+                echo "set -gx $key '$secret_value'" >>"$__OPAH_TEMP_CACHE"
             end
             
             set -gx $key "$secret_value"
 
             printf " %s✓%s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
-            set success_count (math $success_count + 1)
+            set -g __OPAH_SUCCESS_COUNT (math $__OPAH_SUCCESS_COUNT + 1)
         else
             printf " %s✗%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
             printf "%sWarning: Failed to fetch from %s%s\n" $__OPAH_COLOR_WARNING "$value" $__OPAH_COLOR_RESET >&2
@@ -152,43 +170,46 @@ function _opah_load --description "Load secrets from 1Password CLI with permanen
     # Parse YAML and extract key-value pairs under 'secrets' key
     _opah_parse_yaml "$secrets_file" __load_handler
 
-    # Move temp file to final cache location
+    # Copy global values to local variables for cleanup
+    set -l success_count $__OPAH_SUCCESS_COUNT
+    set -l total_count $__OPAH_TOTAL_COUNT
+    set -l key_found $__OPAH_KEY_FOUND
+
+    # Clean up global variables
+    set -e __OPAH_SUCCESS_COUNT
+    set -e __OPAH_TOTAL_COUNT
+    set -e __OPAH_KEY_FOUND
+    set -e __OPAH_TEMP_CACHE
+    set -e __OPAH_SPECIFIC_KEY
+
+    # Set secure permissions on cache file before moving
+    chmod 600 "$temp_cache"
     mv "$temp_cache" "$cache_file"
     
-    # Clean up global temp_cache variable
-    set -e temp_cache
-
-    # Clean up global counter variables after use
-    set -l final_success_count $success_count
-    set -l final_total_count $total_count
-    set -l final_key_found $key_found
-    set -l final_specific_key $specific_key
-    set -e success_count
-    set -e total_count
-    set -e key_found
-    set -e specific_key
+    # Ensure final cache file has secure permissions
+    chmod 600 "$cache_file"
 
     # Check if specific key was found
-    if test -n "$final_specific_key" -a "$final_key_found" = false
-        _opah_error "Failed: Secret '$final_specific_key' not found in configuration" >&2
+    if test -n "$specific_key" -a "$key_found" = false
+        _opah_error "Failed: Secret '$specific_key' not found in configuration" >&2
         return 1
     end
 
     # Display results with modern formatting
-    if test -n "$final_specific_key"
-        if test $final_success_count -eq 1
+    if test -n "$specific_key"
+        if test $success_count -eq 1
             printf "\n"
-            _opah_success "Success! $final_specific_key refreshed"
+            _opah_success "Success! $specific_key refreshed"
         else
-            _opah_error "Failed: Unable to refresh $final_specific_key" >&2
+            _opah_error "Failed: Unable to refresh $specific_key" >&2
             return 1
         end
-    else if test $final_success_count -eq $final_total_count; and test $final_success_count -gt 0
+    else if test $success_count -eq $total_count; and test $success_count -gt 0
         printf "\n"
-        _opah_success "Success! $final_success_count secrets loaded"
-    else if test $final_success_count -gt 0
+        _opah_success "Success! $success_count secrets loaded"
+    else if test $success_count -gt 0
         printf "\n"
-        _opah_info "Partial success: $final_success_count/$final_total_count secrets loaded"
+        _opah_info "Partial success: $success_count/$total_count secrets loaded"
     else
         _opah_error "Failed: No secrets loaded" >&2
         return 1

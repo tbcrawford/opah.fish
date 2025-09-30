@@ -1,3 +1,14 @@
+#
+# Refresh secrets from 1Password
+#
+# Forces a refresh of secrets from 1Password, bypassing the cache. Can refresh
+# all secrets or a specific secret by name. This is useful when secrets have
+# been updated in 1Password and need to be synchronized to the local environment.
+#
+# @param SECRET_NAME Optional secret name to refresh only that specific secret
+# @param -h/--help Shows usage information and examples
+# @return 0 on success, non-zero on failure
+#
 function _opah_refresh -d "Refresh secrets from 1Password"
     # Ensure UI functions are available
     if not functions -q _opah_ui

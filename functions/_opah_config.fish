@@ -1,8 +1,20 @@
+#
+# Show configuration file information and validate format
+#
+# Displays information about the opah configuration file location and
+# validates its format. Shows all possible configuration file locations
+# and indicates which ones exist. Parses and validates the YAML structure
+# of the configuration file if found.
+#
+# @param -h/--help Shows usage information and examples
+# @return 0 on success, 1 if no configuration file is found or validation fails
+#
 function _opah_config -d "Show configuration file information and validate format"
-    # Ensure UI functions are available
-    if not functions -q _opah_ui
-        source (status dirname)/_opah_ui.fish
+    # Initialize UI functions
+    if not functions -q _opah_init_ui
+        source (status dirname)/_opah_init_ui.fish
     end
+    _opah_init_ui
     
     argparse 'h/help' -- $argv
 
@@ -15,14 +27,13 @@ function _opah_config -d "Show configuration file information and validate forma
         return 0
     end
 
-    # Define possible secret file locations (same as in _opah_load)
-    set -l secret_paths \
-        "$HOME/.config/fish/secrets.yaml" \
-        "$HOME/.config/fish/secrets.yml" \
-        "$HOME/.config/fish/.secrets.yaml" \
-        "$HOME/.config/fish/.secrets.yml" \
-        "$HOME/.config/1password-secrets/secrets.yaml" \
-        "$HOME/.config/1password-secrets/secrets.yml"
+    # Ensure path utilities are available
+    if not functions -q _opah_get_config_paths
+        source (status dirname)/_opah_paths.fish
+    end
+
+    # Get possible secret file locations from centralized function
+    set -l secret_paths (_opah_get_config_paths)
 
     printf "Checking configuration file locations:\n"
     for path in $secret_paths
@@ -54,13 +65,14 @@ function _opah_config -d "Show configuration file information and validate forma
     # Validate YAML format and show secrets
     printf "\nConfiguration validation:\n"
     
-    set -g __opah_config_count 0
+    set -l config_count 0
     
-    # Create helper function to handle each secret
-    function __config_handler
+    # Create helper function to handle each secret (avoiding global variables)
+    function __config_handler --description "Handle configuration validation for each secret"
         set -l key $argv[1]
         set -l value $argv[2]
-        set -g __opah_config_count (math $__opah_config_count + 1)
+        # Use parent scope variable
+        set config_count (math $config_count + 1)
         
         if string match -q "op://*" "$value"
             printf "    %s✓%s %s%s:%s %s%s%s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM "$key" $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM "$value" $__OPAH_COLOR_RESET
@@ -73,15 +85,11 @@ function _opah_config -d "Show configuration file information and validate forma
     _opah_parse_yaml "$secrets_file" __config_handler
     # Immediately capture the result before any other operations
     set -l parse_result $status
-    
-    # Now get the count and clean up
-    set -l secret_count $__opah_config_count
-    set -e __opah_config_count
 
     printf "\n"
     if test $parse_result -eq 0
         _opah_success "Success! Configuration valid"
-        _opah_info "Found $(_opah_dim $secret_count) secret(s) defined"
+        _opah_info "Found $(_opah_dim $config_count) secret(s) defined"
     else
         _opah_error "Error: No 'secrets:' section found in configuration file"
         return 1

@@ -1,8 +1,20 @@
+#
+# Diagnose and validate complete setup
+#
+# Performs comprehensive diagnostics of the opah setup including checking
+# for 1Password CLI installation, authentication status, configuration file
+# existence and validity, cache status, and YAML parsing. Provides detailed
+# feedback about each component and suggests fixes for any issues found.
+#
+# @param -h/--help Shows usage information and examples
+# @return 0 if all checks pass, 1 if any issues are detected
+#
 function _opah_doctor -d "Diagnose and validate complete setup"
-    # Ensure UI functions are available
-    if not functions -q _opah_ui
-        source (status dirname)/_opah_ui.fish
+    # Initialize UI functions
+    if not functions -q _opah_init_ui
+        source (status dirname)/_opah_init_ui.fish
     end
+    _opah_init_ui
     
     argparse 'h/help' -- $argv
 
@@ -51,13 +63,13 @@ function _opah_doctor -d "Diagnose and validate complete setup"
 
     # Check configuration file
     printf "🔍 Checking configuration file...\n"
-    set -l secret_paths \
-        "$HOME/.config/fish/secrets.yaml" \
-        "$HOME/.config/fish/secrets.yml" \
-        "$HOME/.config/fish/.secrets.yaml" \
-        "$HOME/.config/fish/.secrets.yml" \
-        "$HOME/.config/1password-secrets/secrets.yaml" \
-        "$HOME/.config/1password-secrets/secrets.yml"
+    
+    # Ensure path utilities are available
+    if not functions -q _opah_get_config_paths
+        source (status dirname)/_opah_paths.fish
+    end
+    
+    set -l secret_paths (_opah_get_config_paths)
 
     set -l secrets_file ""
     for path in $secret_paths
@@ -92,8 +104,8 @@ function _opah_doctor -d "Diagnose and validate complete setup"
 
     # Check cache directory and file
     printf "🔍 Checking cache system...\n"
-    set -l cache_dir "$HOME/.cache/fish/1password-secrets"
-    set -l cache_file "$cache_dir/secrets.fish"
+    set -l cache_dir (_opah_get_cache_dir)
+    set -l cache_file (_opah_get_cache_file)
 
     if test -d "$cache_dir"
         printf "  "
@@ -109,6 +121,14 @@ function _opah_doctor -d "Diagnose and validate complete setup"
         printf "    %sLast updated: %s%s\n" $__OPAH_COLOR_DIM "$(stat -f '%Sm' "$cache_file")" $__OPAH_COLOR_RESET
         set -l cached_secrets (grep -c "^set -gx" "$cache_file" 2>/dev/null || echo "0")
         printf "    %sCached secrets: %s%s\n" $__OPAH_COLOR_DIM "$cached_secrets" $__OPAH_COLOR_RESET
+        
+        # Check cache file permissions
+        set -l cache_perms (stat -f "%A" "$cache_file" 2>/dev/null || echo "unknown")
+        if test "$cache_perms" = "600"
+            printf "    %sPermissions: Secure (600)%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        else
+            printf "    %sPermissions: %s (should be 600)%s\n" $__OPAH_COLOR_WARNING "$cache_perms" $__OPAH_COLOR_RESET
+        end
     else
         printf "  "
         _opah_warning "Cache file missing (run 'opah refresh' to create)"
