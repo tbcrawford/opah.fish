@@ -1,49 +1,46 @@
-function _secrets_reinit -d "Re-initialize plugin (useful after authentication changes)"
+function _secrets_reinit -d "Re-initialize plugin after authentication changes"
+    # Ensure UI functions are available
+    if not functions -q _secrets_ui
+        source (status dirname)/_secrets_ui.fish
+    end
+    
     argparse 'h/help' -- $argv
 
-    # Local icons specific to reinit function
-    set -l RESTART_ICON "🔄"
-    set -l STEP_ICON "📍"
-
     if set -q _flag_help
-        printf "Re-initialize plugin (useful after authentication changes)\n\n"
-        printf "%s%s%s\n" (set_color --bold) "USAGE:" (set_color normal)
+        printf "Re-initialize plugin after authentication changes\n\n"
+        printf "%sUSAGE:%s\n" $__SECRETS_COLOR_BOLD $__SECRETS_COLOR_RESET
         printf "    secrets reinit\n\n"
-        printf "%s%s%s\n" (set_color --bold) "EXAMPLES:" (set_color normal)
-        printf "%s    secrets reinit    # Clear cache and reload all secrets%s\n" (set_color --dim) (set_color normal)
+        printf "%sEXAMPLES:%s\n" $__SECRETS_COLOR_BOLD $__SECRETS_COLOR_RESET
+        printf "%s    secrets reinit    # Clear cache and reload all secrets%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
         return 0
     end
 
     # Clear existing cache and environment variables
-    echo ""
-    echo "📍 Step 1: Clearing existing cache and environment variables..."
-    echo ""
+    _secrets_step "1" "Clearing existing cache and environment variables..."
+    printf "\n"
     _secrets_clear --quiet-footer
-    echo ""
 
     # Force 1Password re-authentication check
-    echo "📍 Step 2: Checking 1Password authentication..."
+    _secrets_step "2" "Checking 1Password authentication..."
     if not op account list >/dev/null 2>&1
-        printf "%s   Signing in to 1Password...%s\n" (set_color --dim) (set_color normal)
+        printf "\n%s   Signing in to 1Password...%s\n" $__SECRETS_COLOR_DIM $__SECRETS_COLOR_RESET
         if not op signin
-            printf "%s%s✗ Failed: %s Could not sign in to 1Password\n" (set_color red) (set_color --bold) (set_color normal) >&2
+            _secrets_error "Failed: Could not sign in to 1Password" >&2
             return 1
         end
     else
-        printf "\n%s✓%s Already signed in to 1Password\n" (set_color green) (set_color normal)
+        printf "\n"
+        _secrets_success "Already signed in to 1Password"
     end
 
     # Reload secrets from configuration
-    echo ""
-    echo "📍 Step 3: Reloading secrets from configuration..."
-    echo ""
+    _secrets_step "3" "Reloading secrets from configuration..."
+    printf "\n"
     if _secrets_load --force
-        printf "\n%s" (set_color --dim)
-        printf "Run 'secrets status' to verify loaded secrets%s\n" (set_color normal)
+        _secrets_hint "secrets status" "to verify loaded secrets"
     else
-        printf "\n%s%s✗ Failed:%s Could not reinitialize secrets\n" (set_color red) (set_color --bold) (set_color normal) >&2
-        printf "%s" (set_color --dim) >&2
-        printf "Run 'secrets doctor' to diagnose issues%s\n" (set_color normal) >&2
+        _secrets_error "Failed: Could not reinitialize secrets" >&2
+        _secrets_hint "secrets doctor" "to diagnose issues" >&2
         return 1
     end
 end

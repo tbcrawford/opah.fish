@@ -1,4 +1,9 @@
 function secrets -d "1Password Secrets Management CLI"
+    # Ensure UI functions are available
+    if not functions -q _secrets_ui
+        source (status dirname)/_secrets_ui.fish
+    end
+    
     set -l subcommand $argv[1]
     
     # Handle -h/--help only when there's no subcommand
@@ -25,8 +30,8 @@ function secrets -d "1Password Secrets Management CLI"
         case help
             _secrets_show_help
         case "*"
-            printf "%s✗%s Unknown subcommand: $subcommand\n" (set_color red) (set_color normal) >&2
-            printf "Run 'secrets help' for usage information.\n" >&2
+            _secrets_error "Unknown subcommand: $subcommand" >&2
+            _secrets_hint "secrets help" "for usage information" >&2
             return 1
     end
 end
