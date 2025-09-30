@@ -1,4 +1,4 @@
-function _secrets_find_config -d "Find the first existing secrets configuration file"
+function _opah_find_config -d "Find the first existing opah configuration file"
     # Define possible secret file locations in order of preference
     set -l secret_paths \
         "$HOME/.config/fish/secrets.yaml" \

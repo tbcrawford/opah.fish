@@ -1,9 +1,9 @@
-function _secrets_parse_yaml -d "Parse secrets from YAML configuration file and call handler function for each secret"
+function _opah_parse_yaml -d "Parse secrets from YAML configuration file and call handler function for each secret"
     set -l config_file $argv[1]
     set -l handler_function $argv[2]
     
     if test -z "$config_file" -o -z "$handler_function"
-        echo "Usage: _secrets_parse_yaml CONFIG_FILE HANDLER_FUNCTION" >&2
+        echo "Usage: _opah_parse_yaml CONFIG_FILE HANDLER_FUNCTION" >&2
         return 1
     end
     
@@ -12,7 +12,7 @@ function _secrets_parse_yaml -d "Parse secrets from YAML configuration file and 
         return 1
     end
     
-    set -l in_secrets_section false
+    set -l in_opah_section false
     set -l base_indent ""
     set -l found_secrets false
     set -l secrets_processed 0
@@ -26,7 +26,7 @@ function _secrets_parse_yaml -d "Parse secrets from YAML configuration file and 
         # Check if we're entering the secrets section
         # Match "secrets:" with optional whitespace and comments
         if string match -qr '^\s*secrets:\s*($|#.*$)' "$line"
-            set in_secrets_section true
+            set in_opah_section true
             set found_secrets true
             # Get the base indentation level
             set base_indent (string match -r "^(\s*)" "$line" | string sub -s 2)
@@ -34,14 +34,14 @@ function _secrets_parse_yaml -d "Parse secrets from YAML configuration file and 
         end
         
         # If we're in the secrets section
-        if test "$in_secrets_section" = true
+        if test "$in_opah_section" = true
             # Get current line's indentation
             set -l current_indent (string match -r "^(\s*)" "$line" | string sub -s 2)
             
             # If indentation is less than or equal to base indent and line contains ":", 
             # we've left the secrets section
             if test (string length "$current_indent") -le (string length "$base_indent"); and string match -q "*:*" "$line"
-                set in_secrets_section false
+                set in_opah_section false
                 continue
             end
             

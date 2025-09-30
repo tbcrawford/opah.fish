@@ -12,8 +12,8 @@ set -l GRAY (set_color brblack)
 
 # Load secrets from 1Password CLI with caching
 # This will only prompt for 1Password login when cache is missing/empty
-if not _secrets_load
+if not _opah_load
     echo "$RED✗$RESET $BOLD""Failed to load 1Password secrets$RESET" >&2
     echo "$GRAY  ⚠ Some functionality may be limited until secrets are available$RESET" >&2
-    echo "$DIM  💡 Run 'secrets status' to check configuration$RESET" >&2
+    echo "$DIM  💡 Run 'opah status' to check configuration$RESET" >&2
 end
