@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/opah-hero.png" alt="OPAH" />
+</p>
+
 # 🐠 opah.fish
 
 A Fish shell plugin for seamless 1Password secrets management with automatic loading and intelligent caching.
