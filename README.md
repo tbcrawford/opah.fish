@@ -10,6 +10,18 @@ A Fish shell plugin for seamless 1Password secrets management with automatic loa
 
 `opah.fish` is a Fish shell plugin that automatically loads secrets from 1Password into your shell environment variables. It features intelligent caching to minimize 1Password CLI calls and includes `opah` (a playful nod to the [opah fish](https://en.wikipedia.org/wiki/Opah) and the 1Password CLI `op`), a comprehensive CLI for managing your secrets.
 
+## 💡 Why use this?
+
+**Commit your dotfiles without committing your secrets.** 
+
+When you manage your Fish shell configuration in git, you typically face a dilemma: either hardcode secrets directly (and risk committing them), use templating systems (adding complexity), or exclude configuration files from version control (losing the benefits of dotfile management).
+
+`opah.fish` solves this by:
+- **Separating secrets from configuration** - Your dotfiles contain only references to secrets, not the secrets themselves
+- **Enabling safe version control** - Commit your entire Fish configuration to git without worrying about exposed credentials
+- **Eliminating templating complexity** - No need for dotfile preprocessors or template systems
+- **Maintaining portability** - The same configuration works across all your machines, with secrets fetched securely from 1Password
+
 ### Key Features
 
 - 🔐 **Automatic secret loading** on shell startup
