@@ -10,20 +10,20 @@
 # @return 0 if all checks pass, 1 if any issues are detected
 #
 function _opah_doctor -d "Diagnose and validate complete setup"
-    # Initialize UI functions
-    if not functions -q _opah_init_ui
-        source (status dirname)/_opah_init_ui.fish
-    end
-    _opah_init_ui
-    
+    functions -q _opah_success; or source (status dirname)/_opah_ui.fish
+    functions -q _opah_get_config_paths; or source (status dirname)/_opah_paths.fish
+    functions -q _opah_mtime; or source (status dirname)/_opah_platform.fish
+    functions -q _opah_parse_yaml; or source (status dirname)/_opah_parse_yaml.fish
+    functions -q _opah_cache_count; or source (status dirname)/_opah_cache.fish
+
     argparse 'h/help' -- $argv
 
     if set -q _flag_help
         printf "Diagnose and validate complete setup\n\n"
-        printf "%sUSAGE:%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
+        printf "%sUSAGE:%s\n" (set_color --bold) (set_color normal)
         printf "    opah doctor\n\n"
-        printf "%sEXAMPLES:%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
-        printf "%s    opah doctor    # Run comprehensive diagnostics%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "%sEXAMPLES:%s\n" (set_color --bold) (set_color normal)
+        printf "%s    opah doctor    # Run comprehensive diagnostics%s\n" (set_color --dim) (set_color normal)
         return 0
     end
 
@@ -34,12 +34,12 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     if command -q op
         printf "  "
         _opah_success "1Password CLI (op) is installed"
-        set -l op_version (op --version 2>/dev/null || echo "unknown")
-        printf "    %sVersion: %s%s\n" $__OPAH_COLOR_DIM "$op_version" $__OPAH_COLOR_RESET
+        set -l op_version (op --version 2>/dev/null; or echo "unknown")
+        printf "    %sVersion: %s%s\n" (set_color --dim) "$op_version" (set_color normal)
     else
         printf "  "
         _opah_error "1Password CLI (op) is not installed"
-        printf "    %sInstall from: https://developer.1password.com/docs/cli/get-started/%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "    %sInstall from: https://developer.1password.com/docs/cli/get-started/%s\n" (set_color --dim) (set_color normal)
         set all_good false
     end
 
@@ -50,13 +50,20 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     if op account list >/dev/null 2>&1
         printf "  "
         _opah_success "Signed in to 1Password"
-        set -l accounts (op account list --format=json 2>/dev/null | jq -r '.[].email' 2>/dev/null || echo "Unable to parse accounts")
-        printf "    %sAccounts: %s%s\n" $__OPAH_COLOR_DIM "$accounts" $__OPAH_COLOR_RESET
+        # Extract email addresses from JSON output using Fish string builtins
+        set -l accounts (op account list --format=json 2>/dev/null \
+            | string match -r '"email":\s*"[^"]+"' \
+            | string replace -r '"email":\s*"([^"]+)"' '$1' \
+            | string join ", ")
+        if test -z "$accounts"
+            set accounts "Unable to parse accounts"
+        end
+        printf "    %sAccounts: %s%s\n" (set_color --dim) "$accounts" (set_color normal)
     else
         printf "  "
         _opah_warning "Not signed in to 1Password"
-        printf "    %sRun: op signin%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-        printf "    %s(This will be done automatically when refreshing secrets)%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "    %sRun: op signin%s\n" (set_color --dim) (set_color normal)
+        printf "    %s(This will be done automatically when refreshing secrets)%s\n" (set_color --dim) (set_color normal)
     end
 
     printf "\n"
@@ -64,39 +71,37 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     # Check configuration file
     printf "🔍 Checking configuration file...\n"
     
-    # Ensure path utilities are available
-    if not functions -q _opah_get_config_paths
-        source (status dirname)/_opah_paths.fish
-    end
-    
     set -l secret_paths (_opah_get_config_paths)
 
-    set -l secrets_file ""
+    set -l config_file ""
     for path in $secret_paths
         if test -f "$path"
-            set secrets_file "$path"
+            set config_file "$path"
             break
         end
     end
 
-    if test -n "$secrets_file"
+    if test -n "$config_file"
         printf "  "
-        _opah_success "Configuration file found: $(_opah_dim $secrets_file)"
+        _opah_success "Configuration file found: "(_opah_dim $config_file)
 
-        # Quick validation
-        if grep -q "secrets:" "$secrets_file"
-            printf "    %sFormat: Valid YAML with secrets section%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-            set -l secret_count (grep -A 100 "secrets:" "$secrets_file" | grep -c "op://" || echo "0")
-            printf "    %s1Password references: %s%s\n" $__OPAH_COLOR_DIM "$secret_count" $__OPAH_COLOR_RESET
-        else
+        # Quick validation: check for secrets section first, then count
+        if not _opah_parse_yaml "$config_file" >/dev/null 2>&1
             printf "  "
             _opah_warning "Configuration file missing 'secrets:' section"
             set all_good false
+        else
+            set -l secret_count 0
+            _opah_parse_yaml "$config_file" | while read -l key value
+                set secret_count (math $secret_count + 1)
+            end
+            printf "    %sFormat: Valid YAML with secrets section%s\n" (set_color --dim) (set_color normal)
+            printf "    %s1Password references: %s%s\n" (set_color --dim) "$secret_count" (set_color normal)
         end
     else
         printf "  "
         _opah_error "No configuration file found"
-        printf "    %sCreate: %s%s\n" $__OPAH_COLOR_DIM "$HOME/.config/fish/secrets.yaml" $__OPAH_COLOR_RESET
+        printf "    %sCreate: %s%s\n" (set_color --dim) "$HOME/.config/fish/secrets.yaml" (set_color normal)
         set all_good false
     end
 
@@ -109,7 +114,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
 
     if test -d "$cache_dir"
         printf "  "
-        _opah_success "Cache directory exists: $(_opah_dim $cache_dir)"
+        _opah_success "Cache directory exists: "(_opah_dim $cache_dir)
     else
         printf "  "
         _opah_warning "Cache directory missing (will be created automatically)"
@@ -117,17 +122,17 @@ function _opah_doctor -d "Diagnose and validate complete setup"
 
     if test -f "$cache_file"
         printf "  "
-        _opah_success "Cache file exists: $(_opah_dim $cache_file)"
-        printf "    %sLast updated: %s%s\n" $__OPAH_COLOR_DIM "$(stat -f '%Sm' "$cache_file")" $__OPAH_COLOR_RESET
-        set -l cached_secrets (grep -c "^set -gx" "$cache_file" 2>/dev/null || echo "0")
-        printf "    %sCached secrets: %s%s\n" $__OPAH_COLOR_DIM "$cached_secrets" $__OPAH_COLOR_RESET
+        _opah_success "Cache file exists: "(_opah_dim $cache_file)
+        printf "    %sLast updated: %s%s\n" (set_color --dim) (_opah_mtime "$cache_file") (set_color normal)
+        set -l cached_secrets (_opah_cache_count "$cache_file")
+        printf "    %sCached secrets: %s%s\n" (set_color --dim) "$cached_secrets" (set_color normal)
         
         # Check cache file permissions
-        set -l cache_perms (stat -f "%A" "$cache_file" 2>/dev/null || echo "unknown")
+        set -l cache_perms (_opah_perms "$cache_file")
         if test "$cache_perms" = "600"
-            printf "    %sPermissions: Secure (600)%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+            printf "    %sPermissions: Secure (600)%s\n" (set_color --dim) (set_color normal)
         else
-            printf "    %sPermissions: %s (should be 600)%s\n" $__OPAH_COLOR_WARNING "$cache_perms" $__OPAH_COLOR_RESET
+            printf "    %sPermissions: %s (should be 600)%s\n" (set_color yellow) "$cache_perms" (set_color normal)
         end
     else
         printf "  "
@@ -138,15 +143,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
 
     # Check Fish shell integration
     printf "🔍 Checking Fish shell integration...\n"
-    if test -d functions
-        printf "  "
-        _opah_success "Running from functions directory"
-    else
-        printf "  "
-        _opah_warning "Functions may not be in Fish path"
-    end
-
-    # Test a simple function call
+    # Test that core functions are available
     if functions -q _opah_load
         printf "  "
         _opah_success "Core functions are available"
@@ -164,14 +161,14 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     if test "$all_good" = true
         _opah_success "All systems operational!"
         
-        printf "\n%sNext steps:%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-        printf "    %sRun 'opah refresh' to load secrets from 1Password%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-        printf "    %sRun 'opah status' to verify loaded secrets%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "\n%sNext steps:%s\n" (set_color --dim) (set_color normal)
+        printf "    %sRun 'opah refresh' to load secrets from 1Password%s\n" (set_color --dim) (set_color normal)
+        printf "    %sRun 'opah status' to verify loaded secrets%s\n" (set_color --dim) (set_color normal)
     else
-        printf "%s⚠ Some issues detected. Please address the items marked with ✗ above.%s\n\n" $__OPAH_COLOR_WARNING $__OPAH_COLOR_RESET
-        printf "%sCommon fixes:%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-        printf "    %sInstall 1Password CLI: brew install 1password-cli%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-        printf "    %sCreate config file: touch %s%s\n" $__OPAH_COLOR_DIM "$HOME/.config/fish/secrets.yaml" $__OPAH_COLOR_RESET
-        printf "    %sSign in to 1Password: op signin%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "%s⚠ Some issues detected. Please address the items marked with ✗ above.%s\n\n" (set_color yellow) (set_color normal)
+        printf "%sCommon fixes:%s\n" (set_color --dim) (set_color normal)
+        printf "    %sInstall 1Password CLI: brew install 1password-cli%s\n" (set_color --dim) (set_color normal)
+        printf "    %sCreate config file: touch %s%s\n" (set_color --dim) "$HOME/.config/fish/secrets.yaml" (set_color normal)
+        printf "    %sSign in to 1Password: op signin%s\n" (set_color --dim) (set_color normal)
     end
 end

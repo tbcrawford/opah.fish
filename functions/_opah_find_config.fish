@@ -9,11 +9,6 @@
 # @return The absolute path to the configuration file (stdout), or empty with exit code 1 if not found
 #
 function _opah_find_config -d "Find the first existing opah configuration file"
-    # Ensure path utilities are available
-    if not functions -q _opah_get_config_paths
-        source (status dirname)/_opah_paths.fish
-    end
-    
     # Get possible secret file locations from centralized function
     set -l secret_paths (_opah_get_config_paths)
     

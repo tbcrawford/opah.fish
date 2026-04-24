@@ -15,9 +15,10 @@ complete -c opah -f -n "__fish_seen_subcommand_from status refresh clear config 
 
 # Function to get cached secret names from cache file
 function __fish_opah_get_cached_names
-    set -l cache_file "$HOME/.cache/fish/opah/secrets.fish"
+    set -l cache_file (_opah_get_cache_file 2>/dev/null)
     if test -f "$cache_file"
-        grep "^set -gx" "$cache_file" 2>/dev/null | string replace -r '^set -gx (\w+) .*' '$1'
+        # Read tab-separated cache format: KEY<tab>VALUE
+        _opah_cache_keys "$cache_file" 2>/dev/null
     end
 end
 
@@ -25,11 +26,10 @@ end
 function __fish_opah_get_config_names
     set -l secrets_file (_opah_find_config 2>/dev/null)
     if test $status -eq 0
-        # Create a simple handler that just prints the key name
-        function __completion_handler
-            echo $argv[1]
+        # Stream-based parsing outputs: KEY<tab>VALUE
+        _opah_parse_yaml "$secrets_file" 2>/dev/null | while read -l key value
+            echo $key
         end
-        _opah_parse_yaml "$secrets_file" __completion_handler 2>/dev/null
     end
 end
 

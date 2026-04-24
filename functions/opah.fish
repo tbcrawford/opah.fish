@@ -10,11 +10,6 @@
 # @return 0 on success, 1 if unknown subcommand
 #
 function opah -d "1Password Secrets Management CLI"
-    # Ensure UI functions are available
-    if not functions -q _opah_ui
-        source (status dirname)/_opah_ui.fish
-    end
-    
     set -l subcommand $argv[1]
     
     # Handle -h/--help only when there's no subcommand

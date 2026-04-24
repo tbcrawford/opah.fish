@@ -10,19 +10,14 @@
 # @return 0 on success, 1 if sign-in fails or secrets cannot be reloaded
 #
 function _opah_reinit -d "Re-initialize plugin after authentication changes"
-    # Ensure UI functions are available
-    if not functions -q _opah_ui
-        source (status dirname)/_opah_ui.fish
-    end
-    
     argparse 'h/help' -- $argv
 
     if set -q _flag_help
         printf "Re-initialize plugin after authentication changes\n\n"
-        printf "%sUSAGE:%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
+        printf "%sUSAGE:%s\n" (set_color --bold) (set_color normal)
         printf "    opah reinit\n\n"
-        printf "%sEXAMPLES:%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
-        printf "%s    opah reinit    # Clear cache and reload all secrets%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "%sEXAMPLES:%s\n" (set_color --bold) (set_color normal)
+        printf "%s    opah reinit    # Clear cache and reload all secrets%s\n" (set_color --dim) (set_color normal)
         return 0
     end
 
@@ -34,7 +29,7 @@ function _opah_reinit -d "Re-initialize plugin after authentication changes"
     # Force 1Password re-authentication check
     _opah_step "2" "Checking 1Password authentication..."
     if not op account list >/dev/null 2>&1
-        printf "\n%s       Signing in to 1Password...%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "\n%s       Signing in to 1Password...%s\n" (set_color --dim) (set_color normal)
         if not op signin
             _opah_error "Failed: Could not sign in to 1Password" >&2
             return 1

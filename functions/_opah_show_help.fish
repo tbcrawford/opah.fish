@@ -8,12 +8,12 @@
 # @return 0 always succeeds
 #
 function _opah_show_help -d "Show main help text"
-    printf "%s🐠 Fishy 1Password Secrets Management CLI%s\n\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
+    printf "%s🐠 Fishy 1Password Secrets Management CLI%s\n\n" (set_color --bold) (set_color normal)
 
-    printf "%sUSAGE:%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
+    printf "%sUSAGE:%s\n" (set_color --bold) (set_color normal)
     printf "    opah <SUBCOMMAND> [OPTIONS]\n\n"
 
-    printf "%sSUBCOMMANDS:%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
+    printf "%sSUBCOMMANDS:%s\n" (set_color --bold) (set_color normal)
     printf "    clear      Clear cached secrets and environment variables\n"
     printf "    config     Show configuration file information and validate format\n"
     printf "    doctor     Diagnose and validate complete setup\n"
@@ -22,11 +22,11 @@ function _opah_show_help -d "Show main help text"
     printf "    status     Show status of cached secrets and configuration\n"
     printf "    help       Show this help message\n\n"
 
-    printf "%sEXAMPLES:%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
-    printf "%s    opah status               # Show all cached opah status%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-    printf "%s    opah refresh              # Refresh all secrets from 1Password%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-    printf "%s    opah clear                # Clear all cached secrets%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-    printf "%s    opah doctor               # Run comprehensive diagnostics%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "%sEXAMPLES:%s\n" (set_color --bold) (set_color normal)
+    printf "%s    opah status               # Show all cached opah status%s\n" (set_color --dim) (set_color normal)
+    printf "%s    opah refresh              # Refresh all secrets from 1Password%s\n" (set_color --dim) (set_color normal)
+    printf "%s    opah clear                # Clear all cached secrets%s\n" (set_color --dim) (set_color normal)
+    printf "%s    opah doctor               # Run comprehensive diagnostics%s\n" (set_color --dim) (set_color normal)
 
     printf "\nFor detailed help on a subcommand, use: opah <SUBCOMMAND> --help\n"
 end
