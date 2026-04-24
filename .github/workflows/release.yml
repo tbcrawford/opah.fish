@@ -13,26 +13,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install fish
-        run: sudo apt-get update && sudo apt-get install -y fish
+        uses: fish-shop/install-fish-shell@v2
 
-      - name: Install just
-        run: sudo apt-get install -y just
+      - name: Syntax check
+        uses: fish-shop/syntax-check@v2
+        with:
+          patterns: "{functions,completions,conf.d,tests}/**.fish"
 
-      - name: Install fisher
-        shell: fish {0}
-        run: curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+      - name: Indent check
+        uses: fish-shop/indent-check@v2
+        with:
+          patterns: "{functions,completions,conf.d,tests}/**.fish"
 
-      - name: Install fishtape
-        shell: fish {0}
-        run: fisher install jorgebucaran/fishtape
-
-      - name: Run CI checks
-        shell: fish {0}
-        run: just ci
+      - name: Run tests
+        uses: fish-shop/run-fishtape-tests@v2
+        with:
+          patterns: tests/**.fish
 
       - name: Create release archives
         run: |
@@ -41,7 +40,7 @@ jobs:
           git archive --format=zip --prefix="opah.fish-${GITHUB_REF_NAME}/" -o "dist/opah.fish-${GITHUB_REF_NAME}.zip" HEAD
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
           files: |

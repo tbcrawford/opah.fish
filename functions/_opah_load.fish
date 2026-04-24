@@ -24,7 +24,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     functions -q _opah_parse_yaml; or source (status dirname)/_opah_parse_yaml.fish
     functions -q _opah_cache_read; or source (status dirname)/_opah_cache.fish
 
-    argparse 'h/help' 'f/force' 'k/key=' -- $argv
+    argparse h/help f/force 'k/key=' -- $argv
 
     if set -q _flag_help
         printf "Load secrets from 1Password CLI with data-based caching\n\n"
@@ -59,14 +59,14 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     # Determine operation mode
     set -l force_refresh false
     set -l specific_key ""
-    
+
     if set -q _flag_force
         set force_refresh true
     end
-    
+
     if set -q _flag_key
         set specific_key "$_flag_key"
-        set force_refresh true  # Force refresh when targeting specific key
+        set force_refresh true # Force refresh when targeting specific key
     end
 
     # Use cached secrets if available and not forcing refresh
@@ -184,6 +184,6 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         _opah_error "Failed: No secrets loaded" >&2
         return 1
     end
-    
+
     return 0
 end

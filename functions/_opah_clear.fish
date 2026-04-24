@@ -14,7 +14,7 @@ function _opah_clear -d "Clear cached secrets and environment variables"
     functions -q _opah_get_cache_file; or source (status dirname)/_opah_paths.fish
     functions -q _opah_cache_keys; or source (status dirname)/_opah_cache.fish
 
-    argparse 'h/help' 'q/quiet-footer' -- $argv
+    argparse h/help q/quiet-footer -- $argv
 
     if set -q _flag_help
         printf "Clear cached secrets and environment variables\n\n"

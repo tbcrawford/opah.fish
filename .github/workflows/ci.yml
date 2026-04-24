@@ -12,26 +12,22 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install fish
-        run: sudo apt-get update && sudo apt-get install -y fish
+        uses: fish-shop/install-fish-shell@v2
 
-      - name: Install just
-        run: sudo apt-get install -y just
+      - name: Syntax check
+        uses: fish-shop/syntax-check@v2
+        with:
+          patterns: "{functions,completions,conf.d,tests}/**.fish"
 
-      - name: Install fisher
-        shell: fish {0}
-        run: curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
-
-      - name: Install fishtape
-        shell: fish {0}
-        run: fisher install jorgebucaran/fishtape
-
-      - name: Run lint
-        shell: fish {0}
-        run: just lint
+      - name: Indent check
+        uses: fish-shop/indent-check@v2
+        with:
+          patterns: "{functions,completions,conf.d,tests}/**.fish"
 
       - name: Run tests
-        shell: fish {0}
-        run: just test
+        uses: fish-shop/run-fishtape-tests@v2
+        with:
+          patterns: tests/**.fish

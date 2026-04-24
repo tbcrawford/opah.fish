@@ -17,10 +17,9 @@ source (status dirname)/../functions/_opah_load.fish
 
 set tmp (mktemp -d)
 set config_file "$tmp/secrets.yaml"
-set cache_file  "$tmp/cache/opah/secrets.fish"
+set cache_file "$tmp/cache/opah/secrets.fish"
 
-printf "secrets:\n  OPAH_LOAD_KEY1: op://Vault/Item/field1\n  OPAH_LOAD_KEY2: op://Vault/Item/field2\n" \
-    >"$config_file"
+printf "secrets:\n  OPAH_LOAD_KEY1: op://Vault/Item/field1\n  OPAH_LOAD_KEY2: op://Vault/Item/field2\n" >"$config_file"
 
 # Mock `op` CLI — no real 1Password needed
 function op
@@ -111,7 +110,7 @@ printf 'OPAH_CACHED_KEY\tcached_value\n' | _opah_cache_write "$cache_file" >/dev
         end
         _opah_load --force >/dev/null 2>&1
         echo $OPAH_LOAD_KEY1
-    end) = "fresh_value"
+    end) = fresh_value
 
 # ── Load: --key ───────────────────────────────────────────────────────────────
 

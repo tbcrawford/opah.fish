@@ -38,10 +38,10 @@ printf 'OPAH_TEST_A\thello\nOPAH_TEST_B\tworld\n' | _opah_cache_write "$cache_fi
     (_opah_cache_read "$cache_file" >/dev/null; echo $status) -eq 0
 
 @test "cache_read: exports first variable into environment" \
-    (begin; _opah_cache_read "$cache_file" >/dev/null; echo $OPAH_TEST_A; end) = "hello"
+    (begin; _opah_cache_read "$cache_file" >/dev/null; echo $OPAH_TEST_A; end) = hello
 
 @test "cache_read: exports second variable into environment" \
-    (begin; _opah_cache_read "$cache_file" >/dev/null; echo $OPAH_TEST_B; end) = "world"
+    (begin; _opah_cache_read "$cache_file" >/dev/null; echo $OPAH_TEST_B; end) = world
 
 @test "cache_read: returns count of loaded secrets" \
     (_opah_cache_read "$cache_file") -eq 2
@@ -75,12 +75,10 @@ printf 'KEY_ONE\tv1\nKEY_TWO\tv2\nKEY_THREE\tv3\n' | _opah_cache_write "$cache_f
     (_opah_cache_keys "$cache_file" | count) -eq 3
 
 @test "cache_keys: first key name is correct" \
-    (_opah_cache_keys "$cache_file")[1] = "KEY_ONE"
+    (_opah_cache_keys "$cache_file")[1] = KEY_ONE
 
 @test "cache_keys: contains all three keys" \
-    (_opah_cache_keys "$cache_file" | string collect) = "KEY_ONE
-KEY_TWO
-KEY_THREE"
+    (_opah_cache_keys "$cache_file" | string join '|') = "KEY_ONE|KEY_TWO|KEY_THREE"
 
 @test "cache_keys: exits 1 for missing file" \
     (_opah_cache_keys "$tmp/missing" >/dev/null 2>&1; echo $status) -eq 1
@@ -106,14 +104,14 @@ printf 'A\told_a\nB\told_b\n' | _opah_cache_write "$cache_file" >/dev/null
         _opah_cache_update "$cache_file" A updated_value >/dev/null
         _opah_cache_read "$cache_file" >/dev/null
         echo $A
-    end) = "updated_value"
+    end) = updated_value
 
 @test "cache_update: other keys are unchanged after update" \
     (begin
         _opah_cache_update "$cache_file" A x >/dev/null
         _opah_cache_read "$cache_file" >/dev/null
         echo $B
-    end) = "old_b"
+    end) = old_b
 
 @test "cache_update: count is unchanged after updating existing key" \
     (begin

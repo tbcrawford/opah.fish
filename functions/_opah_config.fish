@@ -16,7 +16,7 @@ function _opah_config -d "Show configuration file information and validate forma
     functions -q _opah_mtime; or source (status dirname)/_opah_platform.fish
     functions -q _opah_parse_yaml; or source (status dirname)/_opah_parse_yaml.fish
 
-    argparse 'h/help' -- $argv
+    argparse h/help -- $argv
 
     if set -q _flag_help
         printf "Show configuration file information and validate format\n\n"

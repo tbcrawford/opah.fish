@@ -6,33 +6,54 @@ default:
 
 # ── Testing ────────────────────────────────────────────────────────────────────
 
-# Run the full test suite
-test:
+# Run all verification tasks
+check: fmt lint test
+
+# Format all Fish source files
+fmt:
     #!/usr/bin/env fish
-    set failed 0
-    for file in tests/test_*.fish
-        fishtape $file
-        or set failed 1
+    for f in functions/*.fish completions/*.fish conf.d/*.fish tests/*.fish
+        fish_indent --write $f
     end
-    exit $failed
 
-# Run a single test file  (e.g. `just test-one tests/test_cache.fish`)
-test-one file:
-    fishtape {{ file }}
+# Run tests, or one module/file when a target is provided
+test target='':
+    #!/usr/bin/env fish
+    if test -z "{{target}}"
+        set failed 0
+        for file in tests/test_*.fish
+            fishtape $file
+            or set failed 1
+        end
+        exit $failed
+    end
 
-# Run tests for a specific module by name  (e.g. `just test-module cache`)
-test-module name:
-    fishtape tests/test_{{ name }}.fish
+    set target "{{target}}"
+
+    if string match -qr '(^tests/.*\.fish$|\.fish$)' -- $target
+        fishtape $target
+        exit $status
+    end
+
+    fishtape tests/test_$target.fish
 
 # ── Installation ───────────────────────────────────────────────────────────────
 
-# Install fishtape test runner via Fisher
-install-fishtape:
-    fisher install jorgebucaran/fishtape
+# Install the plugin, or install test dependencies when a target is provided
+install target='':
+    #!/usr/bin/env fish
+    if test -z "{{target}}"
+        fisher install .
+        exit $status
+    end
 
-# Install the plugin locally for manual testing
-install-local:
-    fisher install .
+    switch "{{target}}"
+        case test
+            fisher install jorgebucaran/fishtape
+        case '*'
+            echo "unknown install target: {{target}}" >&2
+            exit 1
+    end
 
 # Uninstall the plugin from the local Fish environment
 uninstall:
@@ -59,21 +80,21 @@ lint:
 
 # ── Development helpers ────────────────────────────────────────────────────────
 
-# List all public functions defined by this plugin
-functions:
+# List public plugin functions
+list:
     @fish -c 'for f in functions/_opah_*.fish functions/opah.fish; echo (path basename $f .fish); end'
 
-# Print the active opah config file location (requires plugin loaded)
+# Show the active opah config file location
 config:
     fish -c '_opah_find_config; and cat (_opah_find_config)'
 
-# Clear the local opah secret cache
-clear-cache:
+# Clear the local opah cache
+clean:
     fish -c 'source functions/_opah_paths.fish; and rm -f (_opah_get_cache_file)'
     @echo "Cache cleared"
 
-# Show the contents of the secret cache (for debugging — values are plaintext!)
-show-cache:
+# Show the current opah cache contents
+cache:
     #!/usr/bin/env fish
     source functions/_opah_paths.fish
     set cache (_opah_get_cache_file)
@@ -82,8 +103,3 @@ show-cache:
     else
         echo "No cache file found at $cache"
     end
-
-# ── CI helpers ─────────────────────────────────────────────────────────────────
-
-# Run everything CI would run: lint + tests
-ci: lint test

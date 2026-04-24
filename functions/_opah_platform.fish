@@ -17,11 +17,11 @@
 #
 function _opah_mtime -d "Get file modification time (cross-platform)"
     set -l file_path $argv[1]
-    
+
     if not test -f "$file_path"
         return 1
     end
-    
+
     switch (uname)
         case Darwin
             stat -f '%Sm' "$file_path"
@@ -30,7 +30,7 @@ function _opah_mtime -d "Get file modification time (cross-platform)"
             stat -c '%y' "$file_path" | string replace -r ' \d+:\d+:\d+(\.\d+)? [+-]\d+(:\d+)?' ''
         case '*'
             # Fallback: use date command
-            date -r "$file_path" 2>/dev/null; or echo "unknown"
+            date -r "$file_path" 2>/dev/null; or echo unknown
     end
 end
 
@@ -45,11 +45,11 @@ end
 #
 function _opah_perms -d "Get file permissions in octal (cross-platform)"
     set -l file_path $argv[1]
-    
+
     if not test -e "$file_path"
         return 1
     end
-    
+
     switch (uname)
         case Darwin
             stat -f '%A' "$file_path"
@@ -57,6 +57,6 @@ function _opah_perms -d "Get file permissions in octal (cross-platform)"
             stat -c '%a' "$file_path"
         case '*'
             # Fallback: try to parse ls -l output
-            echo "unknown"
+            echo unknown
     end
 end
