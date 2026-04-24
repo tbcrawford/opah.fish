@@ -10,6 +10,12 @@
 # @return 0 on success, 1 if no configuration file is found or validation fails
 #
 function _opah_config -d "Show configuration file information and validate format"
+    functions -q _opah_success; or source (status dirname)/_opah_ui.fish
+    functions -q _opah_get_config_paths; or source (status dirname)/_opah_paths.fish
+    functions -q _opah_find_config; or source (status dirname)/_opah_find_config.fish
+    functions -q _opah_mtime; or source (status dirname)/_opah_platform.fish
+    functions -q _opah_parse_yaml; or source (status dirname)/_opah_parse_yaml.fish
+
     argparse 'h/help' -- $argv
 
     if set -q _flag_help

@@ -11,6 +11,11 @@
 # @return 0 always succeeds
 #
 function _opah_status -d "Show status of cached secrets and configuration"
+    functions -q _opah_success; or source (status dirname)/_opah_ui.fish
+    functions -q _opah_get_cache_file; or source (status dirname)/_opah_paths.fish
+    functions -q _opah_mtime; or source (status dirname)/_opah_platform.fish
+    functions -q _opah_cache_count; or source (status dirname)/_opah_cache.fish
+
     argparse 'h/help' -- $argv
 
     set -l specific_key $argv[1]

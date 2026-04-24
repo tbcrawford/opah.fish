@@ -8,7 +8,13 @@ default:
 
 # Run the full test suite
 test:
-    fishtape tests/test_*.fish
+    #!/usr/bin/env fish
+    set failed 0
+    for file in tests/test_*.fish
+        fishtape $file
+        or set failed 1
+    end
+    exit $failed
 
 # Run a single test file  (e.g. `just test-one tests/test_cache.fish`)
 test-one file:

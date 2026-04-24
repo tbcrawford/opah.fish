@@ -10,6 +10,12 @@
 # @return 0 if all checks pass, 1 if any issues are detected
 #
 function _opah_doctor -d "Diagnose and validate complete setup"
+    functions -q _opah_success; or source (status dirname)/_opah_ui.fish
+    functions -q _opah_get_config_paths; or source (status dirname)/_opah_paths.fish
+    functions -q _opah_mtime; or source (status dirname)/_opah_platform.fish
+    functions -q _opah_parse_yaml; or source (status dirname)/_opah_parse_yaml.fish
+    functions -q _opah_cache_count; or source (status dirname)/_opah_cache.fish
+
     argparse 'h/help' -- $argv
 
     if set -q _flag_help

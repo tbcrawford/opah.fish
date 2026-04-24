@@ -18,6 +18,12 @@
 # @return 0 on success, 1 if configuration not found or 1Password CLI unavailable
 #
 function _opah_load --description "Load secrets from 1Password CLI with data-based caching"
+    functions -q _opah_success; or source (status dirname)/_opah_ui.fish
+    functions -q _opah_get_cache_file; or source (status dirname)/_opah_paths.fish
+    functions -q _opah_find_config; or source (status dirname)/_opah_find_config.fish
+    functions -q _opah_parse_yaml; or source (status dirname)/_opah_parse_yaml.fish
+    functions -q _opah_cache_read; or source (status dirname)/_opah_cache.fish
+
     argparse 'h/help' 'f/force' 'k/key=' -- $argv
 
     if set -q _flag_help
