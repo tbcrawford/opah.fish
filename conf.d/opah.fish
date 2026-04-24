@@ -2,6 +2,9 @@
 # This configuration file automatically loads secrets from 1Password on shell startup
 # It will use cached secrets if available, or fetch from 1Password if cache is missing/empty
 
+# Only run in interactive shells
+status --is-interactive; or exit
+
 # Define colors and styles for consistent messaging
 set -l RESET (set_color normal)
 set -l BOLD (set_color -o)

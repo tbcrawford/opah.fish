@@ -1,0 +1,7 @@
+*.iws
+*.vsix
+.history/
+.idea/
+.idea_modules/
+.vscode/
+out/
