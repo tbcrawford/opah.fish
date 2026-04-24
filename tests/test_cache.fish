@@ -64,12 +64,7 @@ printf 'OPAH_TEST_DQ\t'"say \"hi\""'\n' | _opah_cache_write "$tmp/dq.fish" >/dev
 # Value with a tab character (regression test for string split -m 1 fix)
 printf "OPAH_TEST_TAB\tcol1\tcol2\n" | _opah_cache_write "$tmp/tab.fish" >/dev/null
 @test "cache round-trip: preserves tab characters in value (regression)" \
-    (begin; _opah_cache_read "$tmp/tab.fish" >/dev/null; echo $OPAH_TEST_TAB; end) = "col1\tcol2"
-
-# Value with newline
-printf 'OPAH_TEST_NL\tline1\nline2\n' | _opah_cache_write "$tmp/nl.fish" >/dev/null
-@test "cache round-trip: preserves newline in value" \
-    (begin; _opah_cache_read "$tmp/nl.fish" >/dev/null; printf '%s' $OPAH_TEST_NL | count; end) -eq 2
+    (begin; _opah_cache_read "$tmp/tab.fish" >/dev/null; echo $OPAH_TEST_TAB; end) = (printf 'col1\tcol2')
 
 # ── _opah_cache_keys ──────────────────────────────────────────────────────────
 

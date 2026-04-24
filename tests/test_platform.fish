@@ -24,7 +24,7 @@ chmod 600 "$test_file"
     (_opah_mtime "$tmp/no_such_file" >/dev/null 2>&1; echo $status) -eq 1
 
 @test "mtime: output is not the raw stat flags" \
-    (_opah_mtime "$test_file" | string match -r '^%') = ""
+    (count (_opah_mtime "$test_file" | string match -r '^%')) -eq 0
 
 # ── _opah_perms ───────────────────────────────────────────────────────────────
 

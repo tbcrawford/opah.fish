@@ -11,7 +11,7 @@ set tmp (mktemp -d)
 
 function make_yaml -a name content
     set -l path "$tmp/$name.yaml"
-    printf '%s' "$content" >"$path"
+    printf '%b' "$content" >"$path"
     echo "$path"
 end
 
@@ -43,7 +43,7 @@ set f_invalid_keys  (make_yaml inv  "secrets:\n  valid_key: op://v/i/f\n  123inv
 # ── Output format ─────────────────────────────────────────────────────────────
 
 @test "parse_yaml: outputs KEY<tab>VALUE on one line" \
-    (_opah_parse_yaml $f_basic) = "API_KEY\top://vault/item/field"
+    (_opah_parse_yaml $f_basic) = (printf 'API_KEY\top://vault/item/field')
 
 @test "parse_yaml: outputs one line per secret" \
     (_opah_parse_yaml $f_multi | count) -eq 3
@@ -87,7 +87,7 @@ set f_invalid_keys  (make_yaml inv  "secrets:\n  valid_key: op://v/i/f\n  123inv
     (_opah_parse_yaml $f_invalid_keys | count) -eq 1
 
 @test "parse_yaml: skips key starting with digit" \
-    (_opah_parse_yaml $f_invalid_keys) = "valid_key\top://v/i/f"
+    (_opah_parse_yaml $f_invalid_keys) = (printf 'valid_key\top://v/i/f')
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 rm -rf $tmp

@@ -25,7 +25,7 @@ source (status dirname)/../functions/_opah_paths.fish
     (_opah_get_cache_file | string match -r 'secrets\.fish$') = "secrets.fish"
 
 @test "get_cache_file: is inside the cache dir" \
-    (_opah_get_cache_file | string match -r "^(_opah_get_cache_dir)") = (_opah_get_cache_dir)
+    (path dirname (_opah_get_cache_file)) = (_opah_get_cache_dir)
 
 # ── _opah_get_config_paths ────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ source (status dirname)/../functions/_opah_paths.fish
     (_opah_get_config_paths | string match -r 'secrets\.yaml$' | count) -ge 1
 
 @test "get_config_paths: all paths are non-empty strings" \
-    (_opah_get_config_paths | string length | math min) -ge 1
+    (_opah_get_config_paths | string length | sort -n | head -1) -ge 1
 
 @test "get_config_paths: first path contains .config/fish" \
     (_opah_get_config_paths)[1] = "$HOME/.config/fish/secrets.yaml"
