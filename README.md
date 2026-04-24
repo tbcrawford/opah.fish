@@ -44,6 +44,12 @@ When you manage your Fish shell configuration in git, you typically face a dilem
 fisher install tbcrawford/opah.fish
 ```
 
+To install a specific release instead of the latest version:
+
+```fish
+fisher install tbcrawford/opah.fish@v0.1.0
+```
+
 ### Using Oh My Fish
 
 ```fish
