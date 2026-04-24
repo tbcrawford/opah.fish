@@ -16,15 +16,15 @@ function make_yaml -a name content
 end
 
 set f_basic (make_yaml basic "secrets:\n  API_KEY: op://vault/item/field\n")
-set f_multi  (make_yaml multi  "secrets:\n  KEY1: op://vault/item/k1\n  KEY2: op://vault/item/k2\n  KEY3: op://vault/item/k3\n")
+set f_multi (make_yaml multi  "secrets:\n  KEY1: op://vault/item/k1\n  KEY2: op://vault/item/k2\n  KEY3: op://vault/item/k3\n")
 set f_quoted_dq (make_yaml qdq  "secrets:\n  MY_KEY: \"op://vault/item/field\"\n")
 set f_quoted_sq (make_yaml qsq  "secrets:\n  MY_KEY: 'op://vault/item/field'\n")
-set f_comments  (make_yaml cmt  "# top comment\nsecrets:\n  # inline comment\n  API_KEY: op://vault/item/field\n\n  # another comment\n  DB_URL: op://vault/item/db\n")
+set f_comments (make_yaml cmt  "# top comment\nsecrets:\n  # inline comment\n  API_KEY: op://vault/item/field\n\n  # another comment\n  DB_URL: op://vault/item/db\n")
 set f_nosecrets (make_yaml nope "other:\n  KEY: val\n")
 set f_colon_val (make_yaml cln  "secrets:\n  CONN: postgres://user:pass@host:5432/db\n")
 set f_two_sections (make_yaml two "secrets:\n  A: op://v/i/a\nother:\n  B: should_not_appear\n")
-set f_tabs_in_val   (make_yaml tab  "secrets:\n  KEY: some\tvalue\n")
-set f_invalid_keys  (make_yaml inv  "secrets:\n  valid_key: op://v/i/f\n  123invalid: op://v/i/f\n  has space: op://v/i/f\n")
+set f_tabs_in_val (make_yaml tab  "secrets:\n  KEY: some\tvalue\n")
+set f_invalid_keys (make_yaml inv  "secrets:\n  valid_key: op://v/i/f\n  123invalid: op://v/i/f\n  has space: op://v/i/f\n")
 
 # ── Exit status ───────────────────────────────────────────────────────────────
 
@@ -49,7 +49,7 @@ set f_invalid_keys  (make_yaml inv  "secrets:\n  valid_key: op://v/i/f\n  123inv
     (_opah_parse_yaml $f_multi | count) -eq 3
 
 @test "parse_yaml: key is correct for basic secret" \
-    (_opah_parse_yaml $f_basic | string split \t)[1] = "API_KEY"
+    (_opah_parse_yaml $f_basic | string split \t)[1] = API_KEY
 
 @test "parse_yaml: value is correct for basic secret" \
     (_opah_parse_yaml $f_basic | string split \t)[2] = "op://vault/item/field"
@@ -79,7 +79,7 @@ set f_invalid_keys  (make_yaml inv  "secrets:\n  valid_key: op://v/i/f\n  123inv
     (_opah_parse_yaml $f_two_sections | count) -eq 1
 
 @test "parse_yaml: outputs only A from two-section file" \
-    (_opah_parse_yaml $f_two_sections | string split \t)[1] = "A"
+    (_opah_parse_yaml $f_two_sections | string split \t)[1] = A
 
 # ── Invalid keys ──────────────────────────────────────────────────────────────
 

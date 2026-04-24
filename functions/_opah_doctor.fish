@@ -16,7 +16,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     functions -q _opah_parse_yaml; or source (status dirname)/_opah_parse_yaml.fish
     functions -q _opah_cache_count; or source (status dirname)/_opah_cache.fish
 
-    argparse 'h/help' -- $argv
+    argparse h/help -- $argv
 
     if set -q _flag_help
         printf "Diagnose and validate complete setup\n\n"
@@ -70,7 +70,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
 
     # Check configuration file
     printf "🔍 Checking configuration file...\n"
-    
+
     set -l secret_paths (_opah_get_config_paths)
 
     set -l config_file ""
@@ -126,10 +126,10 @@ function _opah_doctor -d "Diagnose and validate complete setup"
         printf "    %sLast updated: %s%s\n" (set_color --dim) (_opah_mtime "$cache_file") (set_color normal)
         set -l cached_secrets (_opah_cache_count "$cache_file")
         printf "    %sCached secrets: %s%s\n" (set_color --dim) "$cached_secrets" (set_color normal)
-        
+
         # Check cache file permissions
         set -l cache_perms (_opah_perms "$cache_file")
-        if test "$cache_perms" = "600"
+        if test "$cache_perms" = 600
             printf "    %sPermissions: Secure (600)%s\n" (set_color --dim) (set_color normal)
         else
             printf "    %sPermissions: %s (should be 600)%s\n" (set_color yellow) "$cache_perms" (set_color normal)
@@ -160,7 +160,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     printf "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     if test "$all_good" = true
         _opah_success "All systems operational!"
-        
+
         printf "\n%sNext steps:%s\n" (set_color --dim) (set_color normal)
         printf "    %sRun 'opah refresh' to load secrets from 1Password%s\n" (set_color --dim) (set_color normal)
         printf "    %sRun 'opah status' to verify loaded secrets%s\n" (set_color --dim) (set_color normal)

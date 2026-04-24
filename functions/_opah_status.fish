@@ -16,10 +16,10 @@ function _opah_status -d "Show status of cached secrets and configuration"
     functions -q _opah_mtime; or source (status dirname)/_opah_platform.fish
     functions -q _opah_cache_count; or source (status dirname)/_opah_cache.fish
 
-    argparse 'h/help' -- $argv
+    argparse h/help -- $argv
 
     set -l specific_key $argv[1]
-    
+
     set -l cache_file (_opah_get_cache_file)
 
     if set -q _flag_help
@@ -38,10 +38,10 @@ function _opah_status -d "Show status of cached secrets and configuration"
     if test -f "$cache_file"
         _opah_file "Cache file: "(_opah_dim $cache_file)
         _opah_info "Last updated: "(_opah_dim (_opah_mtime "$cache_file"))
-        
+
         # Check cache file permissions
         set -l cache_perms (_opah_perms "$cache_file")
-        if test "$cache_perms" = "600"
+        if test "$cache_perms" = 600
             _opah_info "Permissions: "(_opah_dim "Secure (600)")
         else
             _opah_warning "Permissions: $cache_perms (should be 600)"

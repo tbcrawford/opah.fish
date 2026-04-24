@@ -10,7 +10,7 @@
 # @return 0 on success, 1 if sign-in fails or secrets cannot be reloaded
 #
 function _opah_reinit -d "Re-initialize plugin after authentication changes"
-    argparse 'h/help' -- $argv
+    argparse h/help -- $argv
 
     if set -q _flag_help
         printf "Re-initialize plugin after authentication changes\n\n"
@@ -22,12 +22,12 @@ function _opah_reinit -d "Re-initialize plugin after authentication changes"
     end
 
     # Clear existing cache and environment variables
-    _opah_step "1" "Clearing existing cache and environment variables..."
+    _opah_step 1 "Clearing existing cache and environment variables..."
     printf "\n"
     _opah_clear --quiet-footer
 
     # Force 1Password re-authentication check
-    _opah_step "2" "Checking 1Password authentication..."
+    _opah_step 2 "Checking 1Password authentication..."
     if not op account list >/dev/null 2>&1
         printf "\n%s       Signing in to 1Password...%s\n" (set_color --dim) (set_color normal)
         if not op signin
@@ -40,7 +40,7 @@ function _opah_reinit -d "Re-initialize plugin after authentication changes"
     end
 
     # Reload secrets from configuration
-    _opah_step "3" "Reloading secrets from configuration..."
+    _opah_step 3 "Reloading secrets from configuration..."
     printf "\n"
     if _opah_load --force
         _opah_hint "opah status" "to verify loaded secrets"

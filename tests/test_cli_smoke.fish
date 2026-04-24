@@ -54,7 +54,7 @@ function write_mock_runner -a script_body
         '            return 0' \
         '    end' \
         '    return 1' \
-        'end' \
+        end \
         "function _opah_get_config_paths; echo $config_file_escaped; end" \
         "function _opah_get_cache_dir; echo $cache_dir_escaped; end" \
         "function _opah_get_cache_file; echo $cache_file_escaped; end" \

@@ -11,7 +11,7 @@ source (status dirname)/../functions/_opah_paths.fish
     -n (_opah_get_cache_dir)
 
 @test "get_cache_dir: path ends with /opah" \
-    (_opah_get_cache_dir | string match -r '/opah$') = "/opah"
+    (_opah_get_cache_dir | string match -r '/opah$') = /opah
 
 @test "get_cache_dir: is rooted under fish cache dir" \
     (_opah_get_cache_dir | string match -r "^$__fish_cache_dir") = "$__fish_cache_dir"

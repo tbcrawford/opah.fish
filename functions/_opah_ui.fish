@@ -11,7 +11,7 @@
 function _opah_ui -d "UI utilities for consistent formatting and colors"
     # Color and style constants
     set -g __OPAH_COLOR_SUCCESS (set_color green)
-    set -g __OPAH_COLOR_ERROR (set_color red) 
+    set -g __OPAH_COLOR_ERROR (set_color red)
     set -g __OPAH_COLOR_WARNING (set_color yellow)
     set -g __OPAH_COLOR_INFO (set_color cyan)
     set -g __OPAH_COLOR_DIM (set_color --dim)

@@ -20,19 +20,19 @@
 #
 function _opah_cache_read -d "Read cache and export secrets to environment"
     set -l cache_file $argv[1]
-    
+
     if not test -f "$cache_file"
         return 1
     end
-    
+
     set -l count 0
-    
+
     while read -l line
         # Skip comments and empty lines
         if string match -qr '^\s*(#|$)' "$line"
             continue
         end
-        
+
         # Parse tab-separated key-value pairs (split at most once to preserve tabs in values)
         set -l parts (string split -m 1 \t "$line")
 
@@ -48,13 +48,13 @@ function _opah_cache_read -d "Read cache and export secrets to environment"
 
             # Unescape the value safely
             set -l value (string unescape --style=script "$escaped_value")
-            
+
             # Export as global environment variable
             set -gx $key "$value"
             set count (math $count + 1)
         end
     end <"$cache_file"
-    
+
     echo $count
     return 0
 end
@@ -72,20 +72,20 @@ end
 function _opah_cache_write -d "Write secrets to cache atomically"
     set -l cache_file $argv[1]
     set -l cache_dir (dirname "$cache_file")
-    
+
     # Create cache directory if needed
     mkdir -p "$cache_dir"
-    
+
     # Create temp file with secure permissions
     set -l temp_cache (mktemp)
     chmod 600 "$temp_cache"
-    
+
     # Write header
     echo "# Cached secrets from 1Password CLI" >"$temp_cache"
     echo "# Generated on: "(date) >>"$temp_cache"
     echo "# Format: KEY<tab>ESCAPED_VALUE" >>"$temp_cache"
     echo "" >>"$temp_cache"
-    
+
     # Read from stdin and write escaped entries
     while read -l line
         set -l parts (string split -m 1 \t "$line")
@@ -93,19 +93,19 @@ function _opah_cache_write -d "Write secrets to cache atomically"
         if test (count $parts) -ge 2
             set -l key $parts[1]
             set -l value $parts[2]
-            
+
             # Escape value safely
             set -l escaped (string escape --style=script -- "$value")
-            
+
             # Write to cache
             printf '%s\t%s\n' "$key" "$escaped" >>"$temp_cache"
         end
     end
-    
+
     # Atomic move with secure permissions
     chmod 600 "$temp_cache"
     mv "$temp_cache" "$cache_file"
-    
+
     return 0
 end
 
@@ -124,25 +124,25 @@ function _opah_cache_update -d "Update single secret in cache"
     set -l cache_file $argv[1]
     set -l key $argv[2]
     set -l value $argv[3]
-    
+
     if not test -f "$cache_file"
         return 1
     end
-    
+
     # Create temp file
     set -l temp_cache (mktemp)
     chmod 600 "$temp_cache"
-    
+
     set -l escaped (string escape --style=script -- "$value")
     set -l found false
-    
+
     # Read existing cache and update the specific key
     while read -l line
         # Skip empty lines but preserve comments
         if string match -qr '^\s*$' "$line"
             continue
         end
-        
+
         # Check if this is the key we're updating
         if string match -qr "^$key\t" "$line"
             printf '%s\t%s\n' "$key" "$escaped" >>"$temp_cache"
@@ -151,16 +151,16 @@ function _opah_cache_update -d "Update single secret in cache"
             echo "$line" >>"$temp_cache"
         end
     end <"$cache_file"
-    
+
     # If key wasn't found, append it
     if test "$found" = false
         printf '%s\t%s\n' "$key" "$escaped" >>"$temp_cache"
     end
-    
+
     # Atomic move
     chmod 600 "$temp_cache"
     mv "$temp_cache" "$cache_file"
-    
+
     return 0
 end
 
@@ -174,17 +174,17 @@ end
 #
 function _opah_cache_keys -d "Get list of cached secret keys"
     set -l cache_file $argv[1]
-    
+
     if not test -f "$cache_file"
         return 1
     end
-    
+
     while read -l line
         # Skip comments and empty lines
         if string match -qr '^\s*(#|$)' "$line"
             continue
         end
-        
+
         # Extract key (first field before tab, split at most once)
         set -l parts (string split -m 1 \t "$line")
         if test (count $parts) -ge 1
@@ -203,11 +203,11 @@ end
 #
 function _opah_cache_count -d "Count secrets in cache"
     set -l cache_file $argv[1]
-    
+
     if not test -f "$cache_file"
         echo 0
         return 0
     end
-    
+
     _opah_cache_keys "$cache_file" | count
 end

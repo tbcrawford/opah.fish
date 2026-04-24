@@ -11,7 +11,7 @@
 function _opah_find_config -d "Find the first existing opah configuration file"
     # Get possible secret file locations from centralized function
     set -l secret_paths (_opah_get_config_paths)
-    
+
     # Find the first existing secrets file
     for path in $secret_paths
         if test -f "$path"
@@ -19,7 +19,7 @@ function _opah_find_config -d "Find the first existing opah configuration file"
             return 0
         end
     end
-    
+
     # If no file found, return error
     return 1
 end

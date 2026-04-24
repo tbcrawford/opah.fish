@@ -10,7 +10,7 @@
 # @return 0 on success, non-zero on failure
 #
 function _opah_refresh -d "Refresh secrets from 1Password"
-    argparse 'h/help' -- $argv
+    argparse h/help -- $argv
 
     set -l specific_key $argv[1]
 

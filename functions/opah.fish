@@ -11,9 +11,9 @@
 #
 function opah -d "1Password Secrets Management CLI"
     set -l subcommand $argv[1]
-    
+
     # Handle -h/--help only when there's no subcommand
-    if test "$subcommand" = "-h"; or test "$subcommand" = "--help"
+    if test "$subcommand" = -h; or test "$subcommand" = --help
         _opah_show_help
         return 0
     end
