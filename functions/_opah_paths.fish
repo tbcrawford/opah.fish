@@ -46,5 +46,5 @@ end
 # @return Cache file path (stdout)
 #
 function _opah_get_cache_file -d "Get cache file path"
-    echo "$(_opah_get_cache_dir)/secrets.fish"
+    echo "$__fish_cache_dir/opah/secrets.fish"
 end
