@@ -61,7 +61,7 @@ uninstall:
 
 # ── Linting / Validation ───────────────────────────────────────────────────────
 
-# Check syntax on all Fish source files
+# Check syntax and formatting on all Fish source files
 lint:
     #!/usr/bin/env fish
     set errors 0
@@ -70,9 +70,13 @@ lint:
             echo "syntax error: $f"
             set errors (math $errors + 1)
         end
+        if not fish_indent $f | diff -q - $f >/dev/null 2>&1
+            echo "indent error: $f"
+            set errors (math $errors + 1)
+        end
     end
     if test $errors -gt 0
-        echo "$errors file(s) have syntax errors"
+        echo "$errors error(s) found"
         exit 1
     else
         echo "All files OK"
