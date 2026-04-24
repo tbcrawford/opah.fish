@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install fish
+        run: sudo apt-get update && sudo apt-get install -y fish
+
+      - name: Install just
+        run: sudo apt-get install -y just
+
+      - name: Install fisher
+        shell: fish {0}
+        run: curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+
+      - name: Install fishtape
+        shell: fish {0}
+        run: fisher install jorgebucaran/fishtape
+
+      - name: Run lint
+        shell: fish {0}
+        run: just lint
+
+      - name: Run tests
+        shell: fish {0}
+        run: just test
