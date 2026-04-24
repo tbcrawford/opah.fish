@@ -125,6 +125,34 @@ printf 'OPAH_CACHED_KEY\tcached_value\n' | _opah_cache_write "$cache_file" >/dev
 @test "load --key: exits 1 when key does not exist in config" \
     (_opah_load --key=OPAH_NONEXISTENT_KEY >/dev/null 2>&1; echo $status) -eq 1
 
+# Regression: repeated --key updates must not double-escape other keys' values
+@test "load --key: other cached keys are not corrupted after repeated --key updates" \
+    (begin
+        # Establish initial cache with two keys
+        function op
+            switch "$argv[1]"
+                case read; echo "value_for_$argv[-1]"; return 0
+                case account; printf '[{}]\n'; return 0
+            end
+        end
+        _opah_load --force >/dev/null 2>&1
+
+        # Update KEY1 twice; KEY2 should still read back correctly
+        function op
+            switch "$argv[1]"
+                case read; echo "updated"; return 0
+                case account; printf '[{}]\n'; return 0
+            end
+        end
+        _opah_load --key=OPAH_LOAD_KEY1 >/dev/null 2>&1
+        _opah_load --key=OPAH_LOAD_KEY1 >/dev/null 2>&1
+
+        # Re-read cache into a clean environment
+        set -e OPAH_LOAD_KEY2
+        _opah_cache_read "$cache_file" >/dev/null
+        echo $OPAH_LOAD_KEY2
+    end) = "value_for_op://Vault/Item/field2"
+
 # ── Load: missing prerequisites ───────────────────────────────────────────────
 
 @test "load: exits 1 when no config file found" \

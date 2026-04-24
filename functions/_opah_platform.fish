@@ -26,7 +26,8 @@ function _opah_mtime -d "Get file modification time (cross-platform)"
         case Darwin
             stat -f '%Sm' "$file_path"
         case Linux
-            stat -c '%y' "$file_path" | string replace -r ' \d+:\d+:\d+\.\d+ [+-]\d+' ''
+            # Strip time and timezone; timezone may be +0000 or +00:00 format
+            stat -c '%y' "$file_path" | string replace -r ' \d+:\d+:\d+(\.\d+)? [+-]\d+(:\d+)?' ''
         case '*'
             # Fallback: use date command
             date -r "$file_path" 2>/dev/null; or echo "unknown"

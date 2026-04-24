@@ -88,66 +88,72 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     # Create cache directory if needed
     mkdir -p "$cache_dir"
 
-    # Parse configuration and fetch secrets
+    # Handle single-key refresh separately to avoid double-escaping existing cache entries
+    if test -n "$specific_key"
+        # Load existing cache into environment first (so other vars stay set)
+        if test -f "$cache_file"
+            _opah_cache_read "$cache_file" >/dev/null
+        end
+
+        # Find the op:// reference for this key in the config
+        set -l op_ref ""
+        _opah_parse_yaml "$config_file" | while read -l key value
+            if test "$key" = "$specific_key"
+                set op_ref "$value"
+            end
+        end
+
+        if test -z "$op_ref"
+            _opah_error "Failed: Secret '$specific_key' not found in configuration" >&2
+            return 1
+        end
+
+        printf "  %s" "$specific_key"
+
+        set -l secret_value (op read "$op_ref" 2>/dev/null)
+        if test $status -eq 0; and test -n "$secret_value"
+            # Use _opah_cache_update which copies existing entries as-is (no double-escaping)
+            if test -f "$cache_file"
+                _opah_cache_update "$cache_file" "$specific_key" "$secret_value"
+            else
+                printf '%s\t%s\n' "$specific_key" "$secret_value" | _opah_cache_write "$cache_file"
+            end
+            set -gx $specific_key "$secret_value"
+            printf " %s✓%s\n" (set_color green) (set_color normal)
+            printf "\n"
+            _opah_success "Success! $specific_key refreshed"
+        else
+            printf " %s✗%s\n" (set_color red) (set_color normal)
+            _opah_error "Failed: Unable to refresh $specific_key" >&2
+            return 1
+        end
+        return 0
+    end
+
+    # Full fetch: parse all secrets and build a fresh cache
     set -l success_count 0
     set -l total_count 0
-    set -l key_found false
-    
+
     # Create temporary storage for cache entries (secure permissions immediately)
     set -l temp_entries (mktemp)
     chmod 600 "$temp_entries"
-    
-    # If updating specific key, load existing cache first
-    if test -n "$specific_key" -a -f "$cache_file"
-        # Copy existing cache entries (skip comments)
-        while read -l line
-            if not string match -qr '^\s*(#|$)' "$line"
-                echo "$line" >>"$temp_entries"
-            end
-        end <"$cache_file"
-        
-        # Also load existing secrets into environment
-        _opah_cache_read "$cache_file" >/dev/null
-    end
-    
+
     # Process each secret from config
     _opah_parse_yaml "$config_file" | while read -l key op_ref
         set total_count (math $total_count + 1)
-        
-        # If targeting specific key, skip others
-        if test -n "$specific_key"
-            if test "$key" != "$specific_key"
-                continue
-            else
-                set key_found true
-            end
-        end
-        
+
         printf "  %s" "$key"
-        
+
         # Fetch secret from 1Password
-        set -l secret_value (op read "$op_ref" 2>&1)
-        set -l op_status $status
-        
-        if test $op_status -eq 0
-            # Store in temp entries file
-            if test -n "$specific_key"
-                # Update mode: remove old entry for this key
-                set -l new_temp (mktemp)
-                while read -l line
-                    if not string match -qr "^$key\t" "$line"
-                        echo "$line" >>"$new_temp"
-                    end
-                end <"$temp_entries"
-                mv "$new_temp" "$temp_entries"
-            end
-            
-            # Add new entry
+        set -l secret_value (op read "$op_ref" 2>/dev/null)
+
+        if test $status -eq 0; and test -n "$secret_value"
+            # Store raw value; _opah_cache_write will escape it
             printf '%s\t%s\n' "$key" "$secret_value" >>"$temp_entries"
-            
-            # Export to environment
+
+            # Export to environment immediately
             set -gx $key "$secret_value"
-            
+
             printf " %s✓%s\n" (set_color green) (set_color normal)
             set success_count (math $success_count + 1)
         else
@@ -155,35 +161,20 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             printf "%sWarning: Failed to fetch secret for key: %s%s\n" (set_color yellow) "$key" (set_color normal) >&2
         end
     end
-    
-    # Write cache using helper function
-    _opah_cache_write "$cache_file" <"$temp_entries"
-    
-    # Cleanup
-    rm -f "$temp_entries"
-    
-    # Check if specific key was found
-    if test -n "$specific_key" -a "$key_found" = false
-        _opah_error "Failed: Secret '$specific_key' not found in configuration" >&2
-        return 1
-    end
-    
-    # Display results
-    if test -n "$specific_key"
-        if test $success_count -eq 1
-            printf "\n"
-            _opah_success "Success! $specific_key refreshed"
-        else
-            _opah_error "Failed: Unable to refresh $specific_key" >&2
-            return 1
-        end
-    else if test $success_count -eq $total_count; and test $success_count -gt 0
+
+    # Display results and write cache only if at least one secret was loaded
+    if test $success_count -eq $total_count; and test $success_count -gt 0
+        _opah_cache_write "$cache_file" <"$temp_entries"
+        rm -f "$temp_entries"
         printf "\n"
         _opah_success "Success! $success_count secrets loaded"
     else if test $success_count -gt 0
+        _opah_cache_write "$cache_file" <"$temp_entries"
+        rm -f "$temp_entries"
         printf "\n"
         _opah_info "Partial success: $success_count/$total_count secrets loaded"
     else
+        rm -f "$temp_entries"
         _opah_error "Failed: No secrets loaded" >&2
         return 1
     end

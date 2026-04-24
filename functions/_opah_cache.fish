@@ -39,7 +39,13 @@ function _opah_cache_read -d "Read cache and export secrets to environment"
         if test (count $parts) -ge 2
             set -l key $parts[1]
             set -l escaped_value $parts[2]
-            
+
+            # Validate key before setting to prevent malformed cache entries
+            # from setting unexpected or dangerous environment variables
+            if not string match -qr '^[A-Za-z_][A-Za-z0-9_]*$' "$key"
+                continue
+            end
+
             # Unescape the value safely
             set -l value (string unescape --style=script "$escaped_value")
             
