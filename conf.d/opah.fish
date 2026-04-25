@@ -18,15 +18,8 @@ status --is-interactive; or exit
 function _opah_startup --on-event fish_prompt
     functions --erase _opah_startup
 
-    set -l RESET (set_color normal)
-    set -l BOLD (set_color -o)
-    set -l DIM (set_color -d)
-    set -l RED (set_color red)
-    set -l GRAY (set_color brblack)
-
     if not _opah_load
-        echo "$RED✗$RESET $BOLD""Failed to load 1Password secrets$RESET" >&2
-        echo "$GRAY  ⚠ Some functionality may be limited until secrets are available$RESET" >&2
-        echo "$DIM  💡 Run 'opah status' to check configuration$RESET" >&2
+        _opah_error "failed to load 1password secrets" >&2
+        _opah_hint "run: opah status to check configuration" >&2
     end
 end
