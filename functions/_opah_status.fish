@@ -1,85 +1,93 @@
 #
-# Show status of cached secrets and configuration
+# Display status of cached secrets and configuration.
 #
-# Displays the current status of cached secrets including cache file location,
-# last update time, and a list of all cached secrets. Can show status for all
-# secrets or a specific secret. Indicates whether each secret is cached and
-# loaded into the environment.
-#
-# @param SECRET_NAME Optional secret name to show status for only that secret
-# @param -h/--help Shows usage information and examples
-# @return 0 always succeeds
-#
-function _opah_status -d "Show status of cached secrets and configuration"
-    functions -q _opah_success; or source (status dirname)/_opah_ui.fish
-    functions -q _opah_get_cache_file; or source (status dirname)/_opah_paths.fish
-    functions -q _opah_mtime; or source (status dirname)/_opah_platform.fish
-    functions -q _opah_cache_count; or source (status dirname)/_opah_cache.fish
-
-    argparse h/help -- $argv
-
-    set -l specific_key $argv[1]
-
-    set -l cache_file (_opah_get_cache_file)
-
-    if set -q _flag_help
-        printf "Show status of cached secrets and configuration\n\n"
-        printf "%sUSAGE:%s\n" (set_color --bold) (set_color normal)
-        printf "    opah status [SECRET_NAME]\n\n"
-        printf "%sARGUMENTS:%s\n" (set_color --bold) (set_color normal)
-        printf "    SECRET_NAME    Show status for specific secret (optional)\n\n"
-        printf "%sEXAMPLES:%s\n" (set_color --bold) (set_color normal)
-        printf "%s    opah status              # Show all opah status%s\n" (set_color --dim) (set_color normal)
-        printf "%s    opah status API_KEY      # Show status for API_KEY only%s\n" (set_color --dim) (set_color normal)
+function _opah_status -d "Show status of cached secrets"
+    # --help
+    if contains -- --help $argv; or contains -- -h $argv
+        _opah_section "Usage"
+        printf "  %sopah status%s %s[SECRET_NAME]%s\n" \
+            $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET \
+            $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        _opah_section "Arguments"
+        printf "  %sSECRET_NAME%s  %sshow status for a specific secret (optional)%s\n" \
+            $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        _opah_section "Examples"
+        printf "  %sopah status              # show all cached secrets%s\n" \
+            $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "  %sopah status API_KEY      # show status for API_KEY only%s\n" \
+            $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
         return 0
     end
 
-    # Check cache file existence
-    if test -f "$cache_file"
-        _opah_file "Cache file: "(_opah_dim $cache_file)
-        _opah_info "Last updated: "(_opah_dim (_opah_mtime "$cache_file"))
+    set -l cache_file (_opah_get_cache_file)
+    set -l filter_key $argv[1]
 
-        # Check cache file permissions
-        set -l cache_perms (_opah_perms "$cache_file")
-        if test "$cache_perms" = 600
-            _opah_info "Permissions: "(_opah_dim "Secure (600)")
-        else
-            _opah_warning "Permissions: $cache_perms (should be 600)"
-        end
+    if not test -f "$cache_file"
+        _opah_error "cache file not found"
+        _opah_hint "run: opah refresh to create cache"
+        return 1
+    end
 
-        # Count cached secrets
-        set -l secret_count (_opah_cache_count "$cache_file")
-        printf "\n"
-        _opah_info "Cached secrets: $secret_count"
+    # Cache section
+    _opah_section "Cache"
+    set -l mod_time (command stat -f "%Sm" -t "%Y-%m-%d %H:%M" "$cache_file" 2>/dev/null; or command stat -c "%y" "$cache_file" 2>/dev/null | string replace -r '\.[0-9]+ .*' '')
+    _opah_info "last updated $mod_time"
+    set -l perms (command stat -f "%OLp" "$cache_file" 2>/dev/null; or command stat -c "%a" "$cache_file" 2>/dev/null)
+    if test "$perms" = 600
+        _opah_info "permissions secure (600)"
+    else
+        _opah_warning "permissions $perms (should be 600)"
+    end
 
-        if test -n "$specific_key"
-            printf "\n"
-            # Show specific secret status
-            set -l keys (_opah_cache_keys "$cache_file")
-            if contains "$specific_key" $keys
-                _opah_success "Secret '"(_opah_bold $specific_key)"': Cached"
-                if set -q $specific_key
-                    _opah_success "Environment: Loaded"
-                else
-                    _opah_error "Environment: Not loaded"
-                end
+    # Parse cached keys
+    set -l cached_keys (string match -r "^set -gx ([A-Z_]+)" <"$cache_file" | string replace -r "^set -gx " "")
+
+    # Secrets section
+    _opah_section "Secrets"
+
+    if test -n "$filter_key"
+        # Single secret lookup
+        if contains -- $filter_key $cached_keys
+            if set -q $filter_key
+                printf "  %s%-20s%s %scached · loaded%s\n" \
+                    $__OPAH_COLOR_DIM $filter_key $__OPAH_COLOR_RESET \
+                    $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
             else
-                _opah_error "Secret '"(_opah_bold $specific_key)"': Not found in cache"
+                printf "  %s%-20s%s %scached%s · %snot loaded%s\n" \
+                    $__OPAH_COLOR_DIM $filter_key $__OPAH_COLOR_RESET \
+                    $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET \
+                    $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
             end
         else
-            printf "\n"
-            # Show all secrets
-            printf "%sCached secrets:%s\n" (set_color --bold) (set_color normal)
-            _opah_cache_keys "$cache_file" | while read -l key
-                if set -q $key
-                    printf "    %s%s:%s %s✓%s Cached & Loaded\n" (set_color --dim) "$key" (set_color normal) (set_color green) (set_color normal)
-                else
-                    printf "    %s%s:%s %s✓%s Cached, %s✗%s Not loaded\n" (set_color --dim) "$key" (set_color normal) (set_color green) (set_color normal) (set_color red) (set_color normal)
-                end
-            end
+            _opah_error "$filter_key not found in cache"
+            return 1
         end
     else
-        _opah_error "Cache file: Not found"
-        _opah_hint "opah refresh" "to create cache"
+        # All secrets
+        set -l loaded_count 0
+        for key in $cached_keys
+            if set -q $key
+                printf "  %s%-20s%s %scached · loaded%s\n" \
+                    $__OPAH_COLOR_DIM $key $__OPAH_COLOR_RESET \
+                    $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
+                set loaded_count (math $loaded_count + 1)
+            else
+                printf "  %s%-20s%s %scached%s · %snot loaded%s\n" \
+                    $__OPAH_COLOR_DIM $key $__OPAH_COLOR_RESET \
+                    $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET \
+                    $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
+            end
+        end
+
+        set -l total (count $cached_keys)
+
+        # Summary section
+        _opah_section "Summary"
+        if test $loaded_count -eq $total
+            _opah_success "$total of $total secrets loaded"
+        else
+            _opah_warning "$loaded_count of $total secrets loaded"
+            _opah_hint "run: opah refresh to reload"
+        end
     end
 end
