@@ -1,32 +1,43 @@
 #
-# Show main help text
+# Display the main opah help screen.
 #
-# Displays the main help text for the opah CLI including usage information,
-# available subcommands, and examples. This is the default help screen shown
-# when running 'opah help' or 'opah' without arguments.
+# The help screen is the only place that renders the brand header and
+# separator rule. All other subcommands start output directly without
+# a title line. Section labels use title case.
 #
-# @return 0 always succeeds
-#
-function _opah_show_help -d "Show main help text"
-    printf "%s🐠 Fishy 1Password Secrets Management CLI%s\n\n" (set_color --bold) (set_color normal)
+function _opah_show_help -d "Display opah help screen"
+    _opah_header
 
-    printf "%sUSAGE:%s\n" (set_color --bold) (set_color normal)
-    printf "    opah <SUBCOMMAND> [OPTIONS]\n\n"
+    _opah_section "Usage"
+    printf "  %sopah%s %s<command>%s %s[options]%s\n" \
+        $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET \
+        $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET \
+        $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
 
-    printf "%sSUBCOMMANDS:%s\n" (set_color --bold) (set_color normal)
-    printf "    clear      Clear cached secrets and environment variables\n"
-    printf "    config     Show configuration file information and validate format\n"
-    printf "    doctor     Diagnose and validate complete setup\n"
-    printf "    refresh    Refresh secrets from 1Password\n"
-    printf "    reinit     Re-initialize plugin after authentication changes\n"
-    printf "    status     Show status of cached secrets and configuration\n"
-    printf "    help       Show this help message\n\n"
+    _opah_section "Commands"
+    printf "  %sstatus    %s%sshow cached secrets%s\n" \
+        $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "  %srefresh   %s%spull secrets from 1password%s\n" \
+        $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "  %sclear     %s%sclear cache and env vars%s\n" \
+        $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "  %sconfig    %s%sshow and validate config%s\n" \
+        $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "  %sdoctor    %s%sdiagnose setup%s\n" \
+        $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "  %sreinit    %s%sre-initialize after auth changes%s\n" \
+        $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "  %shelp      %s%sshow this message%s\n" \
+        $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
 
-    printf "%sEXAMPLES:%s\n" (set_color --bold) (set_color normal)
-    printf "%s    opah status               # Show all cached opah status%s\n" (set_color --dim) (set_color normal)
-    printf "%s    opah refresh              # Refresh all secrets from 1Password%s\n" (set_color --dim) (set_color normal)
-    printf "%s    opah clear                # Clear all cached secrets%s\n" (set_color --dim) (set_color normal)
-    printf "%s    opah doctor               # Run comprehensive diagnostics%s\n" (set_color --dim) (set_color normal)
+    _opah_section "Examples"
+    printf "  %sopah status             # show all cached secrets%s\n" \
+        $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "  %sopah refresh            # pull all secrets%s\n" \
+        $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+    printf "  %sopah doctor             # run diagnostics%s\n" \
+        $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
 
-    printf "\nFor detailed help on a subcommand, use: opah <SUBCOMMAND> --help\n"
+    printf "\n%s  run 'opah <command> --help' for details%s\n" \
+        $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
 end
