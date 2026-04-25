@@ -32,9 +32,19 @@ end
     (run_ui '_opah_warning "permissions should be 600"') \
     = " ▲ permissions should be 600"
 
+@test "_opah_warning prints detail line when provided" \
+    (run_ui '_opah_warning "permissions should be 600" "run: chmod 600"' | string collect) \
+    = " ▲ permissions should be 600
+     run: chmod 600"
+
 @test "_opah_info prints diamond and message" \
     (run_ui '_opah_info "3 secrets defined"') \
     = " ◆ 3 secrets defined"
+
+@test "_opah_info prints detail line when provided" \
+    (run_ui '_opah_info "3 secrets defined" "see: opah status"' | string collect) \
+    = " ◆ 3 secrets defined
+     see: opah status"
 
 @test "_opah_section prints title with leading blank line" \
     (run_ui '_opah_section "Cache"' | string collect) \
