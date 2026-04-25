@@ -18,28 +18,20 @@
 # @return 0 on success, 1 if configuration not found or 1Password CLI unavailable
 #
 function _opah_load --description "Load secrets from 1Password CLI with data-based caching"
-    functions -q _opah_success; or source (status dirname)/_opah_ui.fish
-    functions -q _opah_get_cache_file; or source (status dirname)/_opah_paths.fish
-    functions -q _opah_find_config; or source (status dirname)/_opah_find_config.fish
-    functions -q _opah_parse_yaml; or source (status dirname)/_opah_parse_yaml.fish
-    functions -q _opah_cache_read; or source (status dirname)/_opah_cache.fish
-
-    argparse h/help f/force 'k/key=' -- $argv
-
-    if set -q _flag_help
-        printf "Load secrets from 1Password CLI with data-based caching\n\n"
-        printf "%s%s%s\n" (set_color --bold) "USAGE:" (set_color normal)
-        printf "    _opah_load [OPTIONS]\n\n"
-        printf "%s%s%s\n" (set_color --bold) "OPTIONS:" (set_color normal)
-        printf "    -h, --help            Show this help message\n"
-        printf "    -f, --force           Force refresh of all secrets\n"
-        printf "    -k, --key=KEY         Refresh specific secret only\n\n"
-        printf "%s%s%s\n" (set_color --bold) "EXAMPLES:" (set_color normal)
-        printf "%s    _opah_load                    # Load from cache or fetch if missing%s\n" (set_color --dim) (set_color normal)
-        printf "%s    _opah_load --force            # Force refresh all secrets%s\n" (set_color --dim) (set_color normal)
-        printf "%s    _opah_load --key=API_KEY      # Refresh only API_KEY%s\n" (set_color --dim) (set_color normal)
+    if contains -- --help $argv; or contains -- -h $argv
+        _opah_section "Usage"
+        printf "  %s_opah_load%s %s[OPTIONS]%s\n" \
+            $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET \
+            $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        _opah_section "Options"
+        printf "  %s-f, --force%s  %sforce refresh of all secrets%s\n" \
+            $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        printf "  %s-k, --key%s    %srefresh specific secret only%s\n" \
+            $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
         return 0
     end
+
+    argparse f/force 'k/key=' -- $argv
 
     # Initialize cache paths
     set -l cache_dir (_opah_get_cache_dir)
@@ -48,11 +40,8 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     # Find the opah configuration file
     set -l config_file (_opah_find_config)
     if test $status -ne 0
-        _opah_error "No opah configuration found" >&2
-        printf "%s   Expected locations:%s\n" (set_color --dim) (set_color normal) >&2
-        _opah_get_config_paths | while read -l path
-            printf "%s   %s%s\n" (set_color --dim) "$path" (set_color normal) >&2
-        end
+        _opah_error "no configuration found" >&2
+        _opah_hint "create: ~/.config/fish/secrets.yaml" >&2
         return 1
     end
 
@@ -77,19 +66,19 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
     # Check if 1Password CLI is available
     if not command -q op
-        _opah_error "1Password CLI not found" >&2
-        _opah_hint "Install from: https://developer.1password.com/docs/cli/get-started/" >&2
+        _opah_error "op is not installed" >&2
+        _opah_hint "install from: https://developer.1password.com/docs/cli/get-started/" >&2
         return 1
     end
 
     # Check if user is signed in to 1Password
     if not op account list --format=json >/dev/null 2>&1
-        _opah_error "Not signed in to 1Password" >&2
-        _opah_hint "op signin" "to authenticate" >&2
+        _opah_error "not signed in to 1password" >&2
+        _opah_hint "run: op signin to authenticate" >&2
         return 1
     end
 
-    _opah_security "Loading secrets from 1Password..."
+    _opah_info "loading secrets from 1password..."
 
     # Create cache directory if needed
     mkdir -p "$cache_dir"
@@ -110,11 +99,11 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         end
 
         if test -z "$op_ref"
-            _opah_error "Failed: Secret '$specific_key' not found in configuration" >&2
+            _opah_error "secret '$specific_key' not found in configuration" >&2
             return 1
         end
 
-        printf "  %s" "$specific_key"
+        printf "  %s%-20s%s" $__OPAH_COLOR_DIM "$specific_key" $__OPAH_COLOR_RESET
 
         set -l secret_value (op read "$op_ref" 2>/dev/null)
         if test $status -eq 0; and test -n "$secret_value"
@@ -125,12 +114,11 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
                 printf '%s\t%s\n' "$specific_key" "$secret_value" | _opah_cache_write "$cache_file"
             end
             set -gx $specific_key "$secret_value"
-            printf " %s✓%s\n" (set_color green) (set_color normal)
-            printf "\n"
-            _opah_success "Success! $specific_key refreshed"
+            printf "%s ● %s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
+            _opah_success "$specific_key refreshed"
         else
-            printf " %s✗%s\n" (set_color red) (set_color normal)
-            _opah_error "Failed: Unable to refresh $specific_key" >&2
+            printf "%s ✕ %s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
+            _opah_error "failed to refresh $specific_key" >&2
             return 1
         end
         return 0
@@ -148,7 +136,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     _opah_parse_yaml "$config_file" | while read -l key op_ref
         set total_count (math $total_count + 1)
 
-        printf "  %s" "$key"
+        printf "  %s%-20s%s" $__OPAH_COLOR_DIM "$key" $__OPAH_COLOR_RESET
 
         # Fetch secret from 1Password
         set -l secret_value (op read "$op_ref" 2>/dev/null)
@@ -160,11 +148,10 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             # Export to environment immediately
             set -gx $key "$secret_value"
 
-            printf " %s✓%s\n" (set_color green) (set_color normal)
+            printf "%s ● %s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
             set success_count (math $success_count + 1)
         else
-            printf " %s✗%s\n" (set_color red) (set_color normal)
-            printf "%sWarning: Failed to fetch secret for key: %s%s\n" (set_color yellow) "$key" (set_color normal) >&2
+            printf "%s ✕ %s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2
         end
     end
 
@@ -172,16 +159,14 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     if test $success_count -eq $total_count; and test $success_count -gt 0
         _opah_cache_write "$cache_file" <"$temp_entries"
         rm -f "$temp_entries"
-        printf "\n"
-        _opah_success "Success! $success_count secrets loaded"
+        _opah_success "$success_count secrets loaded"
     else if test $success_count -gt 0
         _opah_cache_write "$cache_file" <"$temp_entries"
         rm -f "$temp_entries"
-        printf "\n"
-        _opah_info "Partial success: $success_count/$total_count secrets loaded"
+        _opah_warning "$success_count of $total_count secrets loaded"
     else
         rm -f "$temp_entries"
-        _opah_error "Failed: No secrets loaded" >&2
+        _opah_error "no secrets loaded" >&2
         return 1
     end
 
