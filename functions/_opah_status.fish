@@ -4,14 +4,14 @@
 function _opah_status -d "Show status of cached secrets"
     # --help
     if contains -- --help $argv; or contains -- -h $argv
-        _opah_section "Usage"
+        _opah_section Usage
         printf "  %sopah status%s %s[SECRET_NAME]%s\n" \
             $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET \
             $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-        _opah_section "Arguments"
+        _opah_section Arguments
         printf "  %sSECRET_NAME%s  %sshow status for a specific secret (optional)%s\n" \
             $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
-        _opah_section "Examples"
+        _opah_section Examples
         printf "  %sopah status              # show all cached secrets%s\n" \
             $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
         printf "  %sopah status API_KEY      # show status for API_KEY only%s\n" \
@@ -29,7 +29,7 @@ function _opah_status -d "Show status of cached secrets"
     end
 
     # Cache section
-    _opah_section "Cache"
+    _opah_section Cache
     set -l mod_time (command stat -f "%Sm" -t "%Y-%m-%d %H:%M" "$cache_file" 2>/dev/null; or command stat -c "%y" "$cache_file" 2>/dev/null | string replace -r '\.[0-9]+ .*' '')
     _opah_info "last updated $mod_time"
     set -l perms (command stat -f "%OLp" "$cache_file" 2>/dev/null; or command stat -c "%a" "$cache_file" 2>/dev/null)
@@ -40,10 +40,10 @@ function _opah_status -d "Show status of cached secrets"
     end
 
     # Parse cached keys
-    set -l cached_keys (string match -r "^set -gx ([A-Z_]+)" <"$cache_file" | string replace -r "^set -gx " "")
+    set -l cached_keys (_opah_cache_keys "$cache_file")
 
     # Secrets section
-    _opah_section "Secrets"
+    _opah_section Secrets
 
     if test -n "$filter_key"
         # Single secret lookup
@@ -82,7 +82,7 @@ function _opah_status -d "Show status of cached secrets"
         set -l total (count $cached_keys)
 
         # Summary section
-        _opah_section "Summary"
+        _opah_section Summary
         if test $loaded_count -eq $total
             _opah_success "$total of $total secrets loaded"
         else

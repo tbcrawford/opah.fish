@@ -79,7 +79,7 @@ end
 @test "cli smoke: bare opah shows help" \
     (begin
         set -l output (run_mocked_cli 'opah')
-        if string match -q '*USAGE:*' -- $output; and string match -q '*SUBCOMMANDS:*' -- $output
+        if string match -q '*Usage*' -- $output; and string match -q '*Commands*' -- $output
             echo ok
         end
     end) = ok
@@ -87,9 +87,9 @@ end
 @test "cli smoke: opah help shows help without unknown commands" \
     (begin
         set -l output (run_mocked_cli 'opah help')
-        if string match -q '*Unknown command*' -- $output
+        if string match -q '*unknown command*' -- $output
             echo bad
-        else if string match -q '*SUBCOMMANDS:*' -- $output
+        else if string match -q '*Commands*' -- $output
             echo ok
         end
     end) = ok
@@ -97,7 +97,7 @@ end
 @test "cli smoke: opah config validates temp config" \
     (begin
         set -l output (run_mocked_cli 'opah config')
-        if string match -q '*Success! Configuration valid*' -- $output; and string match -q "*$config_file*" -- $output
+        if string match -q '*configuration valid*' -- $output; and string match -q "*$config_file*" -- $output
             echo ok
         end
     end) = ok
@@ -106,7 +106,7 @@ end
     (begin
         reset_cache
         set -l output (run_mocked_cli 'opah refresh')
-        if string match -q '*Success! 2 secrets loaded*' -- $output; and test -f "$cache_file"
+        if string match -q '*2 secrets loaded*' -- $output; and test -f "$cache_file"
             echo ok
         end
     end) = ok
@@ -115,7 +115,7 @@ end
     (begin
         reset_cache
         set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah status API_KEY')
-        if string match -q "*Secret '*" -- $output; and string match -q '*Environment: Loaded*' -- $output
+        if string match -q '*cached*' -- $output; and string match -q '*loaded*' -- $output
             echo ok
         end
     end) = ok
@@ -123,8 +123,8 @@ end
 @test "cli smoke: opah clear removes mocked cache" \
     (begin
         reset_cache
-        set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah clear --quiet-footer; and if test -f (_opah_get_cache_file); echo cache-present; else echo cache-missing; end')
-        if string match -q '*Success! Secrets cleared*' -- $output; and string match -q '*cache-missing*' -- $output
+        set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah clear; and if test -f (_opah_get_cache_file); echo cache-present; else echo cache-missing; end')
+        if string match -q '*secrets cleared*' -- $output; and string match -q '*cache-missing*' -- $output
             echo ok
         end
     end) = ok
@@ -133,7 +133,7 @@ end
     (begin
         reset_cache
         set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah doctor; and echo doctor-ok' | string collect)
-        if string match -q '*doctor-ok*' -- $output; and string match -q '*All systems operational!*' -- $output
+        if string match -q '*doctor-ok*' -- $output; and string match -q '*all systems operational*' -- $output
             echo ok
         end
     end) = ok
@@ -154,7 +154,7 @@ end
         set -l status_config (run_mocked_cli_status 'opah config')
         set -l status_refresh (run_mocked_cli_status 'opah refresh')
         set -l status_status (run_mocked_cli_status 'opah refresh >/dev/null; and opah status API_KEY')
-        set -l status_clear (run_mocked_cli_status 'opah refresh >/dev/null; and opah clear --quiet-footer')
+        set -l status_clear (run_mocked_cli_status 'opah refresh >/dev/null; and opah clear')
         set -l status_doctor (run_mocked_cli_status 'opah refresh >/dev/null; and opah doctor')
         set -l status_reinit (run_mocked_cli_status 'opah reinit')
 

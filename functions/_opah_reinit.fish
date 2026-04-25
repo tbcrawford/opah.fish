@@ -4,9 +4,9 @@
 #
 function _opah_reinit -d "Re-initialize plugin after authentication changes"
     if contains -- --help $argv; or contains -- -h $argv
-        _opah_section "Usage"
+        _opah_section Usage
         printf "  %sopah reinit%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
-        _opah_section "Examples"
+        _opah_section Examples
         printf "  %sopah reinit    # clear cache and reload all secrets%s\n" \
             $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
         return 0
@@ -49,7 +49,7 @@ function _opah_reinit -d "Re-initialize plugin after authentication changes"
         return 1
     end
 
-    _opah_section "Summary"
+    _opah_section Summary
     _opah_success "reinitialization complete"
     _opah_hint "run: opah status to verify loaded secrets"
 end

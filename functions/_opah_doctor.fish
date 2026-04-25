@@ -3,9 +3,9 @@
 #
 function _opah_doctor -d "Diagnose and validate complete setup"
     if contains -- --help $argv; or contains -- -h $argv
-        _opah_section "Usage"
+        _opah_section Usage
         printf "  %sopah doctor%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
-        _opah_section "Examples"
+        _opah_section Examples
         printf "  %sopah doctor    # run comprehensive diagnostics%s\n" \
             $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
         return 0
@@ -25,7 +25,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     end
 
     # ── Authentication ───────────────────────────────────────────────────────
-    _opah_section "Authentication"
+    _opah_section Authentication
     if command -q op
         set -l accounts (op account list --format=json 2>/dev/null)
         if test -n "$accounts"; and test "$accounts" != "[]"
@@ -43,14 +43,14 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     end
 
     # ── Configuration ────────────────────────────────────────────────────────
-    _opah_section "Configuration"
+    _opah_section Configuration
     set -l config_file (_opah_find_config)
     if test -n "$config_file"
         _opah_success "$config_file"
         set -l secret_count (string match -ra "op://" <"$config_file" | count)
         _opah_info "$secret_count secrets defined"
         # Check for non-1Password values
-        set -l non_op (grep -v "op://" "$config_file" | grep -v "secrets:" | grep -v "^#" | grep -v "^$" | grep ":" | count 2>/dev/null; or echo 0)
+        set -l non_op (grep -v "op://" "$config_file" | grep -v "secrets:" | grep -v '^#' | grep -v '^$' | grep ":" | count 2>/dev/null; or echo 0)
         if test "$non_op" -gt 0
             _opah_warning "$non_op value(s) are not 1password references"
             set issues (math $issues + 1)
@@ -62,7 +62,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     end
 
     # ── Cache ────────────────────────────────────────────────────────────────
-    _opah_section "Cache"
+    _opah_section Cache
     set -l cache_file (_opah_get_cache_file)
     set -l cache_dir (_opah_get_cache_dir)
     if test -d "$cache_dir"
@@ -73,7 +73,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
 
     if test -f "$cache_file"
         set -l mod_time (command stat -f "%Sm" -t "%Y-%m-%d %H:%M" "$cache_file" 2>/dev/null; or command stat -c "%y" "$cache_file" 2>/dev/null | string replace -r '\.[0-9]+ .*' '')
-        set -l secret_count (string match -ra "^set -gx" <"$cache_file" | count)
+        set -l secret_count (_opah_cache_count "$cache_file")
         _opah_success "cache file exists"
         printf "%s     last updated: %s%s\n" $__OPAH_COLOR_DIM "$mod_time" $__OPAH_COLOR_RESET
         printf "%s     cached secrets: %s%s\n" $__OPAH_COLOR_DIM "$secret_count" $__OPAH_COLOR_RESET
@@ -100,7 +100,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     end
 
     # ── Summary ──────────────────────────────────────────────────────────────
-    _opah_section "Summary"
+    _opah_section Summary
     if test $issues -eq 0
         _opah_success "all systems operational"
         _opah_hint "run: opah status to verify loaded secrets"

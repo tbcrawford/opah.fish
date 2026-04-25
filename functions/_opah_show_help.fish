@@ -8,13 +8,13 @@
 function _opah_show_help -d "Display opah help screen"
     _opah_header
 
-    _opah_section "Usage"
+    _opah_section Usage
     printf "  %sopah%s %s<command>%s %s[options]%s\n" \
         $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET \
         $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET \
         $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
 
-    _opah_section "Commands"
+    _opah_section Commands
     printf "  %sstatus    %s%sshow cached secrets%s\n" \
         $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
     printf "  %srefresh   %s%spull secrets from 1password%s\n" \
@@ -30,7 +30,7 @@ function _opah_show_help -d "Display opah help screen"
     printf "  %shelp      %s%sshow this message%s\n" \
         $__OPAH_COLOR_INFO $__OPAH_COLOR_RESET $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
 
-    _opah_section "Examples"
+    _opah_section Examples
     printf "  %sopah status             # show all cached secrets%s\n" \
         $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
     printf "  %sopah refresh            # pull all secrets%s\n" \

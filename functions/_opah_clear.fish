@@ -6,9 +6,9 @@
 #
 function _opah_clear -d "Clear cached secrets and environment variables"
     if contains -- --help $argv; or contains -- -h $argv
-        _opah_section "Usage"
+        _opah_section Usage
         printf "  %sopah clear%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
-        _opah_section "Examples"
+        _opah_section Examples
         printf "  %sopah clear    # clear all cached secrets and env vars%s\n" \
             $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
         return 0

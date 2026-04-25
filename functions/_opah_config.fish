@@ -3,16 +3,16 @@
 #
 function _opah_config -d "Show configuration file information and validate format"
     if contains -- --help $argv; or contains -- -h $argv
-        _opah_section "Usage"
+        _opah_section Usage
         printf "  %sopah config%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
-        _opah_section "Examples"
+        _opah_section Examples
         printf "  %sopah config    # show config file info and validate format%s\n" \
             $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
         return 0
     end
 
     # ── Locations ────────────────────────────────────────────────────────────
-    _opah_section "Locations"
+    _opah_section Locations
     set -l secret_paths (_opah_get_config_paths)
     for path in $secret_paths
         if test -f "$path"
@@ -36,7 +36,7 @@ function _opah_config -d "Show configuration file information and validate forma
     _opah_info "last modified: $mod_time"
 
     # ── Validation ───────────────────────────────────────────────────────────
-    _opah_section "Validation"
+    _opah_section Validation
 
     if not _opah_parse_yaml "$config_file" >/dev/null 2>&1
         _opah_error "no 'secrets:' section found in configuration"
@@ -54,6 +54,6 @@ function _opah_config -d "Show configuration file information and validate forma
     end
 
     # ── Summary ──────────────────────────────────────────────────────────────
-    _opah_section "Summary"
+    _opah_section Summary
     _opah_success "configuration valid" "$config_count secret(s) defined"
 end
