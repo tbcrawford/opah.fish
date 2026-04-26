@@ -50,7 +50,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
         set -l secret_count (string match -ra "op://" <"$config_file" | count)
         _opah_info "$secret_count secrets defined"
         # Check for non-1Password values
-        set -l non_op (grep -v "op://" "$config_file" | grep -v "secrets:" | grep -v '^#' | grep -v '^$' | grep ":" | count 2>/dev/null; or echo 0)
+        set -l non_op (grep -v "op://" "$config_file" | grep -v "secrets:" | grep -v '^#' | grep -v '^$' | grep ":" | count 2>/dev/null)
         if test "$non_op" -gt 0
             _opah_warning "$non_op value(s) are not 1password references"
             set issues (math $issues + 1)
