@@ -103,7 +103,8 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             return 1
         end
 
-        printf "  %s%-20s%s" $__OPAH_COLOR_DIM "$specific_key" $__OPAH_COLOR_RESET
+        set -l key_dots "$specific_key..."
+        printf "  %s%-23s%s" $__OPAH_COLOR_DIM "$key_dots" $__OPAH_COLOR_RESET
 
         set -l secret_value (op read "$op_ref" 2>/dev/null)
         if test $status -eq 0; and test -n "$secret_value"
@@ -114,10 +115,9 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
                 printf '%s\t%s\n' "$specific_key" "$secret_value" | _opah_cache_write "$cache_file"
             end
             set -gx $specific_key "$secret_value"
-            printf "%s ● %s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
-            _opah_success "$specific_key refreshed"
+            printf "%s✓%s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
         else
-            printf "%s ✕ %s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
+            printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
             _opah_error "Failed to refresh $specific_key" >&2
             return 1
         end
@@ -136,7 +136,8 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     _opah_parse_yaml "$config_file" | while read -l key op_ref
         set total_count (math $total_count + 1)
 
-        printf "  %s%-20s%s" $__OPAH_COLOR_DIM "$key" $__OPAH_COLOR_RESET
+        set -l key_dots "$key..."
+        printf "  %s%-23s%s" $__OPAH_COLOR_DIM "$key_dots" $__OPAH_COLOR_RESET
 
         # Fetch secret from 1Password
         set -l secret_value (op read "$op_ref" 2>/dev/null)
@@ -148,10 +149,10 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             # Export to environment immediately
             set -gx $key "$secret_value"
 
-            printf "%s ● %s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
+            printf "%s✓%s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
             set success_count (math $success_count + 1)
         else
-            printf "%s ✕ %s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2
+            printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2
         end
     end
 
