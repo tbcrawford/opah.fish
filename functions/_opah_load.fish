@@ -40,7 +40,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     # Find the opah configuration file
     set -l config_file (_opah_find_config)
     if test $status -ne 0
-        _opah_error "no configuration found" >&2
+        _opah_error "No configuration found" >&2
         _opah_hint "create: ~/.config/fish/secrets.yaml" >&2
         return 1
     end
@@ -73,12 +73,12 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
     # Check if user is signed in to 1Password
     if not op account list --format=json >/dev/null 2>&1
-        _opah_error "not signed in to 1password" >&2
+        _opah_error "Not signed in to 1password" >&2
         _opah_hint "run: op signin to authenticate" >&2
         return 1
     end
 
-    _opah_info "loading secrets from 1password..."
+    _opah_info "Loading secrets from 1password..."
 
     # Create cache directory if needed
     mkdir -p "$cache_dir"
@@ -99,7 +99,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         end
 
         if test -z "$op_ref"
-            _opah_error "secret '$specific_key' not found in configuration" >&2
+            _opah_error "Secret '$specific_key' not found in configuration" >&2
             return 1
         end
 
@@ -118,7 +118,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             _opah_success "$specific_key refreshed"
         else
             printf "%s ✕ %s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
-            _opah_error "failed to refresh $specific_key" >&2
+            _opah_error "Failed to refresh $specific_key" >&2
             return 1
         end
         return 0
@@ -166,7 +166,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         _opah_warning "$success_count of $total_count secrets loaded"
     else
         rm -f "$temp_entries"
-        _opah_error "no secrets loaded" >&2
+        _opah_error "No secrets loaded" >&2
         return 1
     end
 

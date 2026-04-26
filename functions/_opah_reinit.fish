@@ -25,15 +25,15 @@ function _opah_reinit -d "Re-initialize plugin after authentication changes"
     if command -q op
         set -l accounts (op account list --format=json 2>/dev/null)
         if test -n "$accounts"; and test "$accounts" != "[]"
-            _opah_success "already signed in"
+            _opah_success "Already signed in"
         else
-            _opah_info "signing in to 1password..."
+            _opah_info "Signing in to 1password..."
             if not op signin 2>/dev/null
-                _opah_error "could not sign in to 1password"
+                _opah_error "Could not sign in to 1password"
                 _opah_hint "run: op signin manually then retry opah reinit"
                 return 1
             end
-            _opah_success "signed in"
+            _opah_success "Signed in"
         end
     else
         _opah_error "op is not installed"
@@ -44,12 +44,12 @@ function _opah_reinit -d "Re-initialize plugin after authentication changes"
     # Step 3: Load Secrets
     _opah_section "Step 3  Load Secrets"
     if not _opah_load --force
-        _opah_error "could not reload secrets"
+        _opah_error "Could not reload secrets"
         _opah_hint "run: opah doctor to diagnose"
         return 1
     end
 
     _opah_section Summary
-    _opah_success "reinitialization complete"
+    _opah_success "Reinitialization complete"
     _opah_hint "run: opah status to verify loaded secrets"
 end

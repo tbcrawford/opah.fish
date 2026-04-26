@@ -26,20 +26,20 @@ function _opah_clear -d "Clear cached secrets and environment variables"
         set -l keys (string match -ra "set -gx ([A-Z_]+)" <"$cache_file" | string replace -ra "set -gx ([A-Z_]+).*" '$1')
         for key in $keys
             set -e $key 2>/dev/null
-            _opah_info "unset $key"
+            _opah_info "Unset $key"
         end
     end
 
     # Remove cache file
     if test -f "$cache_file"
         rm -f "$cache_file"
-        _opah_success "cache file removed"
+        _opah_success "Cache file removed"
     else
-        _opah_info "no cache file found"
+        _opah_info "No cache file found"
     end
 
     if test $quiet -eq 0
-        _opah_success "secrets cleared"
+        _opah_success "Secrets cleared"
         _opah_hint "run: opah refresh to reload secrets from 1password"
     end
 end

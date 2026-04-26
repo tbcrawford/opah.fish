@@ -97,7 +97,7 @@ end
 @test "cli smoke: opah config validates temp config" \
     (begin
         set -l output (run_mocked_cli 'opah config')
-        if string match -q '*configuration valid*' -- $output; and string match -q "*$config_file*" -- $output
+        if string match -q '*Configuration valid*' -- $output; and string match -q "*$config_file*" -- $output
             echo ok
         end
     end) = ok
@@ -124,7 +124,7 @@ end
     (begin
         reset_cache
         set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah clear; and if test -f (_opah_get_cache_file); echo cache-present; else echo cache-missing; end')
-        if string match -q '*secrets cleared*' -- $output; and string match -q '*cache-missing*' -- $output
+        if string match -q '*Secrets cleared*' -- $output; and string match -q '*cache-missing*' -- $output
             echo ok
         end
     end) = ok
@@ -133,7 +133,7 @@ end
     (begin
         reset_cache
         set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah doctor; and echo doctor-ok' | string collect)
-        if string match -q '*doctor-ok*' -- $output; and string match -q '*all systems operational*' -- $output
+        if string match -q '*doctor-ok*' -- $output; and string match -q '*All systems operational*' -- $output
             echo ok
         end
     end) = ok

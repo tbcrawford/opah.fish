@@ -25,21 +25,21 @@ function _opah_config -d "Show configuration file information and validate forma
     # Find active config
     set -l config_file (_opah_find_config)
     if test $status -ne 0
-        _opah_error "no configuration file found"
+        _opah_error "No configuration file found"
         _opah_hint "create: ~/.config/fish/secrets.yaml"
         _opah_hint "format: secrets:\n  API_KEY: \"op://vault/item/field\""
         return 1
     end
 
-    _opah_info "active config: $config_file"
+    _opah_info "Active config: $config_file"
     set -l mod_time (command stat -f "%Sm" -t "%Y-%m-%d %H:%M" "$config_file" 2>/dev/null; or command stat -c "%y" "$config_file" 2>/dev/null | string replace -r '\.[0-9]+ .*' '')
-    _opah_info "last modified: $mod_time"
+    _opah_info "Last modified: $mod_time"
 
     # ── Validation ───────────────────────────────────────────────────────────
     _opah_section Validation
 
     if not _opah_parse_yaml "$config_file" >/dev/null 2>&1
-        _opah_error "no 'secrets:' section found in configuration"
+        _opah_error "No 'secrets:' section found in configuration"
         return 1
     end
 
@@ -55,5 +55,5 @@ function _opah_config -d "Show configuration file information and validate forma
 
     # ── Summary ──────────────────────────────────────────────────────────────
     _opah_section Summary
-    _opah_success "configuration valid" "$config_count secret(s) defined"
+    _opah_success "Configuration valid" "$config_count secret(s) defined"
 end

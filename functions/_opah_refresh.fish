@@ -21,7 +21,7 @@ function _opah_refresh -d "Refresh secrets from 1Password"
     set -l specific_key $argv[1]
 
     if test -n "$specific_key"
-        _opah_info "refreshing secret: $specific_key"
+        _opah_info "Refreshing secret: $specific_key"
         _opah_load --key="$specific_key"
     else
         _opah_load --force

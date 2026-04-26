@@ -23,7 +23,7 @@ function _opah_status -d "Show status of cached secrets"
     set -l filter_key $argv[1]
 
     if not test -f "$cache_file"
-        _opah_error "cache file not found"
+        _opah_error "Cache file not found"
         _opah_hint "run: opah refresh to create cache"
         return 1
     end
@@ -31,12 +31,12 @@ function _opah_status -d "Show status of cached secrets"
     # Cache section
     _opah_section Cache
     set -l mod_time (command stat -f "%Sm" -t "%Y-%m-%d %H:%M" "$cache_file" 2>/dev/null; or command stat -c "%y" "$cache_file" 2>/dev/null | string replace -r '\.[0-9]+ .*' '')
-    _opah_info "last updated $mod_time"
+    _opah_info "Last updated $mod_time"
     set -l perms (command stat -f "%OLp" "$cache_file" 2>/dev/null; or command stat -c "%a" "$cache_file" 2>/dev/null)
     if test "$perms" = 600
-        _opah_info "permissions secure (600)"
+        _opah_info "Permissions secure (600)"
     else
-        _opah_warning "permissions $perms (should be 600)"
+        _opah_warning "Permissions $perms (should be 600)"
     end
 
     # Parse cached keys
