@@ -79,6 +79,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     end
 
     _opah_info "Loading secrets from 1password..."
+    echo
 
     # Create cache directory if needed
     mkdir -p "$cache_dir"
@@ -165,6 +166,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2
         end
     end
+    echo
 
     # Display results and write cache only if at least one secret was loaded
     if test $success_count -eq $total_count; and test $success_count -gt 0
