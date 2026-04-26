@@ -103,8 +103,9 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             return 1
         end
 
+        set -l col_width (math (string length "$specific_key") + 5)
         set -l key_dots "$specific_key..."
-        printf "  %s%-23s%s" $__OPAH_COLOR_DIM "$key_dots" $__OPAH_COLOR_RESET
+        printf "  %s%-*s%s" $__OPAH_COLOR_DIM $col_width "$key_dots" $__OPAH_COLOR_RESET
 
         set -l secret_value (op read "$op_ref" 2>/dev/null)
         if test $status -eq 0; and test -n "$secret_value"
@@ -128,6 +129,15 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     set -l success_count 0
     set -l total_count 0
 
+    # Compute column width from longest key name (key + "..." + 2 spaces minimum)
+    set -l col_width 10
+    _opah_parse_yaml "$config_file" | while read -l key _op_ref
+        set -l w (math (string length "$key") + 5)
+        if test $w -gt $col_width
+            set col_width $w
+        end
+    end
+
     # Create temporary storage for cache entries (secure permissions immediately)
     set -l temp_entries (mktemp)
     chmod 600 "$temp_entries"
@@ -137,7 +147,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         set total_count (math $total_count + 1)
 
         set -l key_dots "$key..."
-        printf "  %s%-23s%s" $__OPAH_COLOR_DIM "$key_dots" $__OPAH_COLOR_RESET
+        printf "  %s%-*s%s" $__OPAH_COLOR_DIM $col_width "$key_dots" $__OPAH_COLOR_RESET
 
         # Fetch secret from 1Password
         set -l secret_value (op read "$op_ref" 2>/dev/null)
