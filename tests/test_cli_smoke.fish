@@ -115,7 +115,7 @@ end
     (begin
         reset_cache
         set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah status API_KEY')
-        if string match -q '*cached*' -- $output; and string match -q '*loaded*' -- $output
+        if string match -q '*Cached*' -- $output; and string match -q '*Loaded*' -- $output
             echo ok
         end
     end) = ok

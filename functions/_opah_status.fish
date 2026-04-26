@@ -48,36 +48,28 @@ function _opah_status -d "Show status of cached secrets"
     if test -n "$filter_key"
         # Single secret lookup
         if contains -- $filter_key $cached_keys
+            set -l is_loaded 0
             if set -q $filter_key
-                printf "  %s%-20s%s %scached · loaded%s\n" \
-                    $__OPAH_COLOR_DIM $filter_key $__OPAH_COLOR_RESET \
-                    $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
-            else
-                printf "  %s%-20s%s %scached%s · %snot loaded%s\n" \
-                    $__OPAH_COLOR_DIM $filter_key $__OPAH_COLOR_RESET \
-                    $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET \
-                    $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
+                set is_loaded 1
             end
+            _opah_status_table 1 $filter_key $is_loaded
         else
             _opah_error "$filter_key not found in cache"
             return 1
         end
     else
-        # All secrets
+        # All secrets — build parallel loaded-flags list
         set -l loaded_count 0
+        set -l loaded_flags
         for key in $cached_keys
             if set -q $key
-                printf "  %s%-20s%s %scached · loaded%s\n" \
-                    $__OPAH_COLOR_DIM $key $__OPAH_COLOR_RESET \
-                    $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
+                set -a loaded_flags 1
                 set loaded_count (math $loaded_count + 1)
             else
-                printf "  %s%-20s%s %scached%s · %snot loaded%s\n" \
-                    $__OPAH_COLOR_DIM $key $__OPAH_COLOR_RESET \
-                    $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET \
-                    $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
+                set -a loaded_flags 0
             end
         end
+        _opah_status_table (count $cached_keys) $cached_keys $loaded_flags
 
         set -l total (count $cached_keys)
 
