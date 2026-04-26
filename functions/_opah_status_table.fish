@@ -10,6 +10,9 @@
 # All listed keys are implicitly cached (they came from the cache file).
 #
 function _opah_status_table -d "Render secrets status as a Unicode box table"
+    if not set -q argv[1]
+        return 1
+    end
     set -l n $argv[1]
     if test $n -eq 0
         return 0
@@ -17,12 +20,6 @@ function _opah_status_table -d "Render secrets status as a Unicode box table"
 
     set -l keys $argv[2..(math $n + 1)]
     set -l flags $argv[(math $n + 2)..-1]
-
-    # Ensure color variables are strings (may be unset in test environments)
-    set -q __OPAH_COLOR_DIM; or set -g __OPAH_COLOR_DIM ""
-    set -q __OPAH_COLOR_RESET; or set -g __OPAH_COLOR_RESET ""
-    set -q __OPAH_COLOR_SUCCESS; or set -g __OPAH_COLOR_SUCCESS ""
-    set -q __OPAH_COLOR_ERROR; or set -g __OPAH_COLOR_ERROR ""
 
     # ── Secret column width ───────────────────────────────────────────────────
     # Minimum = length of "Secret" (6) so the header always fits.
@@ -43,6 +40,9 @@ function _opah_status_table -d "Render secrets status as a Unicode box table"
         end
     end
     set -l max_secret_col (math $term_width - 24)
+    if test $max_secret_col -lt 6
+        set max_secret_col 6
+    end
     if test (math $max_key_len + 2) -gt $max_secret_col
         set max_key_len (math $max_secret_col - 2)
     end
@@ -60,10 +60,10 @@ function _opah_status_table -d "Render secrets status as a Unicode box table"
     set -l s_pad_r (math $s_pad_total - $s_pad_l)
     set -l hdr_secret (printf "%*s%s%*s" $s_pad_l "" Secret $s_pad_r "")
 
-    # ── Sigil padding: 1 char centered in a 10-wide cell ─────────────────────
-    # floor((10-1)/2) = 4 left, 5 right
-    set -l sig_l "    "
-    set -l sig_r "     "
+    # ── Sigil padding: 1 char centered in status_col-wide cell ───────────────
+    set -l sig_pad (math "floor(($status_col - 1) / 2)")
+    set -l sig_l (string repeat -n $sig_pad " ")
+    set -l sig_r (string repeat -n (math $status_col - 1 - $sig_pad) " ")
 
     # ── Top border ────────────────────────────────────────────────────────────
     printf "%s┌%s┬%s┬%s┐%s\n" \

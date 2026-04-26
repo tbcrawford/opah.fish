@@ -6,7 +6,7 @@ set functions_dir "$repo_root/functions"
 
 function run_table -a script_body
     fish --no-config -C "set fish_function_path $functions_dir \$fish_function_path" \
-        -c "$script_body" 2>&1 \
+        -c "_opah_ui; $script_body" 2>&1 \
         | string replace --all --regex '\x1b\[[0-9;]*m' ''
 end
 
@@ -54,3 +54,8 @@ end
 @test "table: zero secrets returns without output" \
     (run_table '_opah_status_table 0' | count) \
     -eq 0
+
+@test "table: very narrow terminal does not overflow header" \
+    (run_table 'set -gx COLUMNS 28; _opah_status_table 1 K 1' \
+        | string match -r 'Secret') \
+    != ""
