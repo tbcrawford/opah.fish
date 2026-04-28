@@ -3,7 +3,11 @@
 # Run with: fishtape tests/test_cache.fish
 # Install fishtape: fisher install jorgebucaran/fishtape
 
-source (status dirname)/../functions/_opah_cache.fish
+source (status dirname)/../functions/_opah_cache_read.fish
+source (status dirname)/../functions/_opah_cache_write.fish
+source (status dirname)/../functions/_opah_cache_update.fish
+source (status dirname)/../functions/_opah_cache_keys.fish
+source (status dirname)/../functions/_opah_cache_count.fish
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 

@@ -6,9 +6,23 @@
 # Install fishtape: fisher install jorgebucaran/fishtape
 
 source (status dirname)/../functions/_opah_ui.fish
-source (status dirname)/../functions/_opah_paths.fish
-source (status dirname)/../functions/_opah_platform.fish
-source (status dirname)/../functions/_opah_cache.fish
+source (status dirname)/../functions/_opah_success.fish
+source (status dirname)/../functions/_opah_error.fish
+source (status dirname)/../functions/_opah_warning.fish
+source (status dirname)/../functions/_opah_info.fish
+source (status dirname)/../functions/_opah_section.fish
+source (status dirname)/../functions/_opah_hint.fish
+source (status dirname)/../functions/_opah_header.fish
+source (status dirname)/../functions/_opah_get_config_paths.fish
+source (status dirname)/../functions/_opah_get_cache_dir.fish
+source (status dirname)/../functions/_opah_get_cache_file.fish
+source (status dirname)/../functions/_opah_mtime.fish
+source (status dirname)/../functions/_opah_perms.fish
+source (status dirname)/../functions/_opah_cache_read.fish
+source (status dirname)/../functions/_opah_cache_write.fish
+source (status dirname)/../functions/_opah_cache_update.fish
+source (status dirname)/../functions/_opah_cache_keys.fish
+source (status dirname)/../functions/_opah_cache_count.fish
 source (status dirname)/../functions/_opah_parse_yaml.fish
 source (status dirname)/../functions/_opah_find_config.fish
 source (status dirname)/../functions/_opah_load.fish

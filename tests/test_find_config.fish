@@ -3,7 +3,9 @@
 # Run with: fishtape tests/test_find_config.fish
 # Install fishtape: fisher install jorgebucaran/fishtape
 
-source (status dirname)/../functions/_opah_paths.fish
+source (status dirname)/../functions/_opah_get_config_paths.fish
+source (status dirname)/../functions/_opah_get_cache_dir.fish
+source (status dirname)/../functions/_opah_get_cache_file.fish
 source (status dirname)/../functions/_opah_find_config.fish
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
