@@ -43,7 +43,10 @@ function _opah_cache_write -d "Write secrets to cache atomically"
 
     # Atomic move with secure permissions
     chmod 600 "$temp_cache"
-    mv "$temp_cache" "$cache_file"
+    if not mv "$temp_cache" "$cache_file"
+        rm -f "$temp_cache"
+        return 1
+    end
 
     return 0
 end

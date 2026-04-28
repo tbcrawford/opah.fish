@@ -48,7 +48,10 @@ function _opah_cache_update -d "Update single secret in cache"
 
     # Atomic move
     chmod 600 "$temp_cache"
-    mv "$temp_cache" "$cache_file"
+    if not mv "$temp_cache" "$cache_file"
+        rm -f "$temp_cache"
+        return 1
+    end
 
     return 0
 end

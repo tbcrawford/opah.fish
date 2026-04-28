@@ -29,13 +29,13 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     if command -q op
         set -l accounts (op account list --format=json 2>/dev/null)
         if test -n "$accounts"; and test "$accounts" != "[]"
-            _opah_success "Signed in to 1password"
+            _opah_success "Signed in to 1Password"
             set -l emails (echo $accounts | string match -ra '"email":"[^"]*"' | string replace -ra '"email":"([^"]*)"' '$1' | string join ", ")
             if test -n "$emails"
                 printf "%s     %s%s\n" $__OPAH_COLOR_DIM "$emails" $__OPAH_COLOR_RESET
             end
         else
-            _opah_warning "Not signed in to 1password"
+            _opah_warning "Not signed in to 1Password"
             _opah_hint "run: op signin"
         end
     else
@@ -52,7 +52,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
         # Check for non-1Password values
         set -l non_op (grep -v "op://" "$config_file" | grep -v "secrets:" | grep -v '^#' | grep -v '^$' | grep ":" | count 2>/dev/null)
         if test "$non_op" -gt 0
-            _opah_warning "$non_op value(s) are not 1password references"
+            _opah_warning "$non_op value(s) are not 1Password references"
             set issues (math $issues + 1)
         end
     else

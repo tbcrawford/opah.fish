@@ -40,6 +40,6 @@ function _opah_clear -d "Clear cached secrets and environment variables"
 
     if test $quiet -eq 0
         _opah_success "Secrets cleared"
-        _opah_hint "run: opah refresh to reload secrets from 1password"
+        _opah_hint "run: opah refresh to reload secrets from 1Password"
     end
 end

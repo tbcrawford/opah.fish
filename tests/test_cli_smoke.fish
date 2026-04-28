@@ -163,4 +163,11 @@ end
         end
     end) = ok
 
+@test "conf.d: non-interactive shell loads secrets from cache into environment" \
+    (begin
+        reset_cache
+        run_mocked_cli 'opah refresh' >/dev/null 2>&1
+        fish --no-config (write_mock_runner "source $repo_root/conf.d/opah.fish; echo \$API_KEY") 2>/dev/null
+    end) = mock-api-key
+
 rm -rf "$tmp"

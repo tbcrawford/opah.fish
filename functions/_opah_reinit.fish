@@ -27,9 +27,9 @@ function _opah_reinit -d "Re-initialize plugin after authentication changes"
         if test -n "$accounts"; and test "$accounts" != "[]"
             _opah_success "Already signed in"
         else
-            _opah_info "Signing in to 1password..."
+            _opah_info "Signing in to 1Password..."
             if not op signin 2>/dev/null
-                _opah_error "Could not sign in to 1password"
+                _opah_error "Could not sign in to 1Password"
                 _opah_hint "run: op signin manually then retry opah reinit"
                 return 1
             end

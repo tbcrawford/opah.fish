@@ -60,8 +60,24 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
     # Use cached secrets if available and not forcing refresh
     if test -f "$cache_file" -a "$force_refresh" = false
-        _opah_cache_read "$cache_file" >/dev/null
-        return 0
+        # Detect stale v0.1.0 cache (executable Fish: `set -gx KEY value`)
+        # New format is tab-separated data; old format causes silent zero-secrets load
+        set -l is_legacy false
+        while read -l line
+            string match -qr '^\s*(#|$)' -- "$line"; and continue
+            if string match -qr '^set -gx ' -- "$line"
+                set is_legacy true
+            end
+            break
+        end <"$cache_file"
+
+        if test "$is_legacy" = false
+            _opah_cache_read "$cache_file" >/dev/null
+            return 0
+        end
+
+        # Old format detected; fall through to refresh from 1Password
+        _opah_warning "Cache format outdated — refreshing from 1Password" >&2
     end
 
     # Check if 1Password CLI is available
@@ -73,12 +89,12 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
     # Check if user is signed in to 1Password
     if not op account list --format=json >/dev/null 2>&1
-        _opah_error "Not signed in to 1password" >&2
+        _opah_error "Not signed in to 1Password" >&2
         _opah_hint "run: op signin to authenticate" >&2
         return 1
     end
 
-    _opah_info "Loading secrets from 1password..."
+    _opah_info "Loading secrets from 1Password..."
     echo
 
     # Create cache directory if needed
@@ -130,9 +146,13 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     set -l success_count 0
     set -l total_count 0
 
-    # Compute column width from longest key name (key + "..." + 2 spaces minimum)
+    # Collect keys and refs in one pass, compute col_width at the same time
+    set -l all_keys
+    set -l all_refs
     set -l col_width 10
-    _opah_parse_yaml "$config_file" | while read -l key _op_ref
+    _opah_parse_yaml "$config_file" | while read -l key op_ref
+        set -a all_keys $key
+        set -a all_refs $op_ref
         set -l w (math (string length "$key") + 5)
         if test $w -gt $col_width
             set col_width $w
@@ -144,7 +164,9 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     chmod 600 "$temp_entries"
 
     # Process each secret from config
-    _opah_parse_yaml "$config_file" | while read -l key op_ref
+    for i in (seq 1 (count $all_keys))
+        set -l key $all_keys[$i]
+        set -l op_ref $all_refs[$i]
         set total_count (math $total_count + 1)
 
         set -l key_dots "$key..."

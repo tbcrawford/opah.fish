@@ -196,5 +196,41 @@ printf 'OPAH_CACHED_KEY\tcached_value\n' | _opah_cache_write "$cache_file" >/dev
         echo $status
     end) -eq 1
 
+# ── Load: legacy cache format migration ──────────────────────────────────────
+
+@test "load: exits 0 after detecting and migrating v0.1.0 legacy cache format" \
+    (begin
+        mock_opah_paths
+        function op
+            switch "$argv[1]"
+                case read; echo "fresh_value"; return 0
+                case account; printf '[{}]\n'; return 0
+            end
+        end
+        # Write legacy cache (v0.1.0: executable Fish code with set -gx)
+        mkdir -p (dirname "$cache_file")
+        printf "# Cached secrets from 1Password CLI\nset -gx OPAH_LEGACY_KEY 'old_value'\n" >"$cache_file"
+        chmod 600 "$cache_file"
+        _opah_load >/dev/null 2>&1
+        echo $status
+    end) -eq 0
+
+@test "load: after legacy cache migration, sets secrets from current config (not old cache)" \
+    (begin
+        mock_opah_paths
+        function op
+            switch "$argv[1]"
+                case read; echo "fresh_value"; return 0
+                case account; printf '[{}]\n'; return 0
+            end
+        end
+        mkdir -p (dirname "$cache_file")
+        printf "# Cached secrets from 1Password CLI\nset -gx OPAH_LEGACY_KEY 'old_value'\n" >"$cache_file"
+        chmod 600 "$cache_file"
+        set -e OPAH_LOAD_KEY1
+        _opah_load >/dev/null 2>&1
+        echo $OPAH_LOAD_KEY1
+    end) = fresh_value
+
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 rm -rf $tmp
