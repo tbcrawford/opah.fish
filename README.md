@@ -17,10 +17,6 @@ fisher install tbcrawford/opah.fish
 
 Define your secrets once in a YAML file. On every shell startup, opah loads them from 1Password and exports them as environment variables — fetching live on first run, then reading from a secure local cache.
 
-<p align="center">
-  <img src="assets/demo/demo.gif" alt="Terminal demo showing opah refresh, status, and doctor" width="720" />
-</p>
-
 ---
 
 ## Why opah
