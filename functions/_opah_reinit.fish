@@ -1,52 +1,55 @@
 #
-# Re-initialize plugin after authentication changes
-#
-# Performs a complete re-initialization of the opah plugin by clearing the cache,
-# verifying 1Password authentication (and prompting for sign-in if needed), and
-# reloading all secrets from the configuration. This is useful after changing
-# 1Password accounts or when authentication has expired.
-#
-# @param -h/--help Shows usage information and examples
-# @return 0 on success, 1 if sign-in fails or secrets cannot be reloaded
+# Re-initialize the plugin after authentication changes.
+# Clears cache, verifies auth, and reloads all secrets.
 #
 function _opah_reinit -d "Re-initialize plugin after authentication changes"
-    argparse h/help -- $argv
-
-    if set -q _flag_help
-        printf "Re-initialize plugin after authentication changes\n\n"
-        printf "%sUSAGE:%s\n" (set_color --bold) (set_color normal)
-        printf "    opah reinit\n\n"
-        printf "%sEXAMPLES:%s\n" (set_color --bold) (set_color normal)
-        printf "%s    opah reinit    # Clear cache and reload all secrets%s\n" (set_color --dim) (set_color normal)
+    if contains -- --help $argv; or contains -- -h $argv
+        _opah_section Usage
+        printf "  %sopah reinit%s\n" $__OPAH_COLOR_BOLD $__OPAH_COLOR_RESET
+        _opah_section Examples
+        printf "  %sopah reinit    # clear cache and reload all secrets%s\n" \
+            $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
         return 0
     end
 
-    # Clear existing cache and environment variables
-    _opah_step 1 "Clearing existing cache and environment variables..."
-    printf "\n"
-    _opah_clear --quiet-footer
+    # Step 1: Clear Cache
+    _opah_section "Step 1  Clear Cache"
+    _opah_clear --quiet 2>/dev/null
+    or begin
+        # _opah_clear handles its own output; just proceed
+        true
+    end
 
-    # Force 1Password re-authentication check
-    _opah_step 2 "Checking 1Password authentication..."
-    if not op account list >/dev/null 2>&1
-        printf "\n%s       Signing in to 1Password...%s\n" (set_color --dim) (set_color normal)
-        if not op signin
-            _opah_error "Failed: Could not sign in to 1Password" >&2
-            return 1
+    # Step 2: Authenticate
+    _opah_section "Step 2  Authenticate"
+    if command -q op
+        set -l accounts (op account list --format=json 2>/dev/null)
+        if test -n "$accounts"; and test "$accounts" != "[]"
+            _opah_success "Already signed in"
+        else
+            _opah_info "Signing in to 1Password..."
+            if not op signin 2>/dev/null
+                _opah_error "Could not sign in to 1Password"
+                _opah_hint "run: op signin manually then retry opah reinit"
+                return 1
+            end
+            _opah_success "Signed in"
         end
     else
-        printf "\n"
-        _opah_success "Already signed in to 1Password"
-    end
-
-    # Reload secrets from configuration
-    _opah_step 3 "Reloading secrets from configuration..."
-    printf "\n"
-    if _opah_load --force
-        _opah_hint "opah status" "to verify loaded secrets"
-    else
-        _opah_error "Failed: Could not reinitialize secrets" >&2
-        _opah_hint "opah doctor" "to diagnose issues" >&2
+        _opah_error "op is not installed"
+        _opah_hint "install from: https://developer.1password.com/docs/cli/get-started/"
         return 1
     end
+
+    # Step 3: Load Secrets
+    _opah_section "Step 3  Load Secrets"
+    if not _opah_load --force
+        _opah_error "Could not reload secrets"
+        _opah_hint "run: opah doctor to diagnose"
+        return 1
+    end
+
+    _opah_section Summary
+    _opah_success "Reinitialization complete"
+    _opah_hint "run: opah status to verify loaded secrets"
 end

@@ -6,9 +6,23 @@
 # Install fishtape: fisher install jorgebucaran/fishtape
 
 source (status dirname)/../functions/_opah_ui.fish
-source (status dirname)/../functions/_opah_paths.fish
-source (status dirname)/../functions/_opah_platform.fish
-source (status dirname)/../functions/_opah_cache.fish
+source (status dirname)/../functions/_opah_success.fish
+source (status dirname)/../functions/_opah_error.fish
+source (status dirname)/../functions/_opah_warning.fish
+source (status dirname)/../functions/_opah_info.fish
+source (status dirname)/../functions/_opah_section.fish
+source (status dirname)/../functions/_opah_hint.fish
+source (status dirname)/../functions/_opah_header.fish
+source (status dirname)/../functions/_opah_get_config_paths.fish
+source (status dirname)/../functions/_opah_get_cache_dir.fish
+source (status dirname)/../functions/_opah_get_cache_file.fish
+source (status dirname)/../functions/_opah_mtime.fish
+source (status dirname)/../functions/_opah_perms.fish
+source (status dirname)/../functions/_opah_cache_read.fish
+source (status dirname)/../functions/_opah_cache_write.fish
+source (status dirname)/../functions/_opah_cache_update.fish
+source (status dirname)/../functions/_opah_cache_keys.fish
+source (status dirname)/../functions/_opah_cache_count.fish
 source (status dirname)/../functions/_opah_parse_yaml.fish
 source (status dirname)/../functions/_opah_find_config.fish
 source (status dirname)/../functions/_opah_load.fish
@@ -181,6 +195,42 @@ printf 'OPAH_CACHED_KEY\tcached_value\n' | _opah_cache_write "$cache_file" >/dev
         _opah_load --force >/dev/null 2>&1
         echo $status
     end) -eq 1
+
+# ── Load: legacy cache format migration ──────────────────────────────────────
+
+@test "load: exits 0 after detecting and migrating v0.1.0 legacy cache format" \
+    (begin
+        mock_opah_paths
+        function op
+            switch "$argv[1]"
+                case read; echo "fresh_value"; return 0
+                case account; printf '[{}]\n'; return 0
+            end
+        end
+        # Write legacy cache (v0.1.0: executable Fish code with set -gx)
+        mkdir -p (dirname "$cache_file")
+        printf "# Cached secrets from 1Password CLI\nset -gx OPAH_LEGACY_KEY 'old_value'\n" >"$cache_file"
+        chmod 600 "$cache_file"
+        _opah_load >/dev/null 2>&1
+        echo $status
+    end) -eq 0
+
+@test "load: after legacy cache migration, sets secrets from current config (not old cache)" \
+    (begin
+        mock_opah_paths
+        function op
+            switch "$argv[1]"
+                case read; echo "fresh_value"; return 0
+                case account; printf '[{}]\n'; return 0
+            end
+        end
+        mkdir -p (dirname "$cache_file")
+        printf "# Cached secrets from 1Password CLI\nset -gx OPAH_LEGACY_KEY 'old_value'\n" >"$cache_file"
+        chmod 600 "$cache_file"
+        set -e OPAH_LOAD_KEY1
+        _opah_load >/dev/null 2>&1
+        echo $OPAH_LOAD_KEY1
+    end) = fresh_value
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 rm -rf $tmp

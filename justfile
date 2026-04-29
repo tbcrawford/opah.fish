@@ -94,13 +94,13 @@ config:
 
 # Clear the local opah cache
 clean:
-    fish -c 'source functions/_opah_paths.fish; and rm -f (_opah_get_cache_file)'
+    fish -c 'source functions/_opah_get_cache_file.fish; and rm -f (_opah_get_cache_file)'
     @echo "Cache cleared"
 
 # Show the current opah cache contents
 cache:
     #!/usr/bin/env fish
-    source functions/_opah_paths.fish
+    source functions/_opah_get_cache_file.fish
     set cache (_opah_get_cache_file)
     if test -f $cache
         cat $cache

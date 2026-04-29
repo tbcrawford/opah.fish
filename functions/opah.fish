@@ -36,8 +36,8 @@ function opah -d "1Password Secrets Management CLI"
         case help
             _opah_show_help
         case "*"
-            _opah_error "Unknown subcommand: $subcommand" >&2
-            _opah_hint "opah help" "for usage information" >&2
+            _opah_error "Unknown command: $subcommand" >&2
+            _opah_hint "run: opah help for usage information" >&2
             return 1
     end
 end

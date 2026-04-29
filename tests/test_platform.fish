@@ -3,7 +3,8 @@
 # Run with: fishtape tests/test_platform.fish
 # Install fishtape: fisher install jorgebucaran/fishtape
 
-source (status dirname)/../functions/_opah_platform.fish
+source (status dirname)/../functions/_opah_mtime.fish
+source (status dirname)/../functions/_opah_perms.fish
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
