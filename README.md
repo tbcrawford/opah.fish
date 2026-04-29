@@ -15,7 +15,10 @@ fisher install tbcrawford/opah.fish
 
 ## Quick Start
 
-Define your secrets once in a YAML file. On every shell startup, opah loads them from 1Password and exports them as environment variables — fetching live on first run, then reading from a secure local cache.
+1. Install the plugin: `fisher install tbcrawford/opah.fish`
+2. Create `~/.config/fish/secrets.yaml` with your secret references (see [Configuration](#configuration))
+3. Run `opah refresh` to fetch from 1Password and populate the cache
+4. Open a new shell — secrets load automatically on every startup
 
 ---
 
@@ -60,7 +63,14 @@ secrets:
   GITHUB_TOKEN: "op://Work/GitHub/token"
 ```
 
-Values must be [1Password secret references](https://developer.1password.com/docs/cli/secret-reference-syntax/) in `op://vault/item/field` format. opah also checks `~/.config/fish/secrets.yml`, `~/.config/opah/secrets.yaml`, and a few other locations if the primary path is absent.
+Values must be [1Password secret references](https://developer.1password.com/docs/cli/secret-reference-syntax/) in `op://vault/item/field` format. opah checks the following locations in order, using the first file it finds:
+
+- `~/.config/fish/secrets.yaml` _(recommended)_
+- `~/.config/fish/secrets.yml`
+- `~/.config/fish/.secrets.yaml`
+- `~/.config/fish/.secrets.yml`
+- `~/.config/opah/secrets.yaml`
+- `~/.config/opah/secrets.yml`
 
 ---
 
@@ -82,7 +92,7 @@ Values must be [1Password secret references](https://developer.1password.com/doc
 
 On each shell startup, opah checks for a local cache. If it exists, secrets load instantly without touching 1Password. If it is missing, opah calls `op read` for each secret in your config, writes a fresh cache, and exports everything into the environment.
 
-The cache is stored at `~/.cache/fish/opah/secrets.fish` with `600` permissions and is invalidated manually via `opah refresh` or `opah clear`.
+The cache is stored at `~/.cache/fish/opah/secrets.fish` with `600` permissions. It is updated by `opah refresh` and removed by `opah clear`.
 
 ---
 
