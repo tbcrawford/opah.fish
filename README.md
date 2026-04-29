@@ -5,9 +5,7 @@
 Automatically load 1Password secrets into your Fish shell environment.<br>
 Secure caching, instant startup, and a clean CLI for day-to-day secret management.
 
-```fish
-fisher install tbcrawford/opah.fish
-```
+<p align="center"><code>fisher install tbcrawford/opah.fish</code></p>
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-000000?style=flat-square)](LICENSE)&nbsp;&nbsp;[![Fish](https://img.shields.io/badge/Fish_3.0+-4B7BEC?style=flat-square)](https://fishshell.com)&nbsp;&nbsp;[![Release](https://img.shields.io/github/v/release/tbcrawford/opah.fish?style=flat-square&color=000000)](https://github.com/tbcrawford/opah.fish/releases)
 
