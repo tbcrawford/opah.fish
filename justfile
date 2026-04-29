@@ -82,6 +82,13 @@ lint:
         echo "All files OK"
     end
 
+# ── Assets ────────────────────────────────────────────────────────────────────
+
+# Regenerate README demo GIF from its VHS tape (requires vhs)
+demo:
+    mkdir -p assets/demo
+    vhs tapes/demo.tape
+
 # ── Development helpers ────────────────────────────────────────────────────────
 
 # List public plugin functions
