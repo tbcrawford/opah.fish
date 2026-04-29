@@ -45,7 +45,7 @@ printf '%s\n' \
     '    end' \
     '    return 1' \
     end \
-    '_opah_ui' \
+    _opah_ui \
     'opah doctor' >"$runner_file"
 
 @test "cli autoload: opah doctor does not emit unknown command errors" \
