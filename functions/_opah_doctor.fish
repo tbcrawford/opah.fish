@@ -57,14 +57,6 @@ function _opah_doctor -d "Diagnose and validate complete setup"
             _opah_hint "run: chmod 600 $config_file"
             set issues (math $issues + 1)
         end
-        if test -L "$config_file"
-            _opah_warning "Configuration file is a symlink"
-            set issues (math $issues + 1)
-        end
-        if not _opah_file_owned_by_user "$config_file"
-            _opah_warning "Configuration file is not owned by the current user"
-            set issues (math $issues + 1)
-        end
         # Check for non-1Password values
         set -l non_op (grep -v "op://" "$config_file" | grep -v "secrets:" | grep -v '^#' | grep -v '^$' | grep ":" | count 2>/dev/null)
         if test "$non_op" -gt 0

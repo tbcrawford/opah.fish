@@ -21,36 +21,13 @@ function _opah_clear -d "Clear cached secrets and environment variables"
 
     set -l cache_file (_opah_get_cache_file)
 
-    # Unset environment variables (tab-separated cache or legacy set -gx format)
+    # Unset environment variables from cache
     set -l keys
     if test -f "$cache_file"
-        set -l is_legacy false
-        while read -l line
-            string match -qr '^\s*(#|$)' -- "$line"; and continue
-            if string match -qr '^set -gx ' -- "$line"
-                set is_legacy true
-            end
-            break
-        end <"$cache_file"
-
-        if test "$is_legacy" = true
-            set -a keys (string match -ra "set -gx ([A-Za-z_][A-Za-z0-9_]*)" <"$cache_file" | string replace -ra 'set -gx ([A-Za-z_][A-Za-z0-9_]*).*' '$1')
-        else
-            set -a keys (_opah_cache_keys "$cache_file")
-        end
+        set -a keys (_opah_cache_keys "$cache_file")
     end
 
-    set -l config_file (_opah_find_config 2>/dev/null)
-    if test -n "$config_file"
-        for line in (_opah_parse_yaml "$config_file")
-            set -l parts (string split -m 1 \t "$line")
-            if test (count $parts) -ge 1
-                set -a keys $parts[1]
-            end
-        end
-    end
-
-    for key in (printf '%s\n' $keys | sort -u)
+    for key in $keys
         if not string match -qr '^[A-Za-z_][A-Za-z0-9_]*$' -- "$key"
             continue
         end

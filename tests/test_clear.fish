@@ -5,11 +5,9 @@
 source (status dirname)/../functions/_opah_get_config_paths.fish
 source (status dirname)/../functions/_opah_get_cache_dir.fish
 source (status dirname)/../functions/_opah_get_cache_file.fish
-source (status dirname)/../functions/_opah_find_config.fish
 source (status dirname)/../functions/_opah_perms.fish
 source (status dirname)/../functions/_opah_cache_validate.fish
 source (status dirname)/../functions/_opah_is_blocked_env_key.fish
-source (status dirname)/../functions/_opah_parse_yaml.fish
 source (status dirname)/../functions/_opah_cache_keys.fish
 source (status dirname)/../functions/_opah_cache_read.fish
 source (status dirname)/../functions/_opah_cache_write.fish
@@ -24,22 +22,15 @@ source (status dirname)/../functions/_opah_header.fish
 source (status dirname)/../functions/_opah_clear.fish
 
 set tmp (mktemp -d)
-set config_file "$tmp/secrets.yaml"
 set cache_dir "$tmp/cache/opah"
 set cache_file "$cache_dir/secrets.fish"
 
-function _opah_get_config_paths
-    echo "$config_file"
-end
 function _opah_get_cache_dir
     echo "$cache_dir"
 end
 function _opah_get_cache_file
     echo "$cache_file"
 end
-
-printf "secrets:\n  OPAH_CLEAR_TEST: op://Vault/Item/field\n" >"$config_file"
-chmod 600 "$config_file"
 
 @test "clear: unsets env vars from tab-separated cache" \
     (begin
@@ -51,14 +42,6 @@ chmod 600 "$config_file"
         end
         _opah_clear --quiet >/dev/null
         if set -q OPAH_CLEAR_TEST; echo still-set; else echo cleared; end
-    end) = cleared
-
-@test "clear: unsets env vars from legacy set -gx cache" \
-    (begin
-        printf '# legacy cache\nset -gx OPAH_LEGACY_CLEAR old_value\n' >"$cache_file"
-        set -gx OPAH_LEGACY_CLEAR old_value
-        _opah_clear --quiet >/dev/null
-        if set -q OPAH_LEGACY_CLEAR; echo still-set; else echo cleared; end
     end) = cleared
 
 @test "clear: skips blocked keys like PATH when unsetting cache vars" \

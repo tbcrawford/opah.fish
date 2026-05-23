@@ -2,12 +2,6 @@
 # This configuration file automatically loads secrets from 1Password on shell startup.
 # It will use cached secrets if available, or fetch from 1Password if cache is missing.
 
-# Autoload is enabled by default. Set OPAH_AUTOLOAD=0 to disable automatic loading
-# in non-interactive shells (fish -c, scripts, CI jobs).
-if not set -q OPAH_AUTOLOAD
-    set -gx OPAH_AUTOLOAD 1
-end
-
 if status --is-interactive
     # Defer loading until after the first prompt is ready.
     #
@@ -28,8 +22,8 @@ if status --is-interactive
         end
     end
 else
-    # Non-interactive shells load secrets when OPAH_AUTOLOAD is enabled (default).
-    if _opah_autoload_enabled
+    # Non-interactive shells load secrets unless OPAH_AUTOLOAD=0.
+    if test "$OPAH_AUTOLOAD" != 0
         _opah_load
     end
 end

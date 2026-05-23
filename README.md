@@ -96,13 +96,13 @@ The cache is stored at `~/.cache/fish/opah/secrets.fish` with `600` permissions.
 
 ## Security
 
-Cached secrets are stored in plaintext on disk at `~/.cache/fish/opah/secrets.fish`. opah creates the cache directory with mode `700` and the cache file with mode `600`. Both the cache and your `secrets.yaml` config must be owned by you and must not be symlinks — opah refuses to read or write otherwise.
+Cached secrets are stored in plaintext on disk at `~/.cache/fish/opah/secrets.fish`. opah creates the cache directory with mode `700` and the cache file with mode `600`.
 
 Use `opah clear` before walking away from a shared machine. On personal machines, whole-disk encryption provides the appropriate layer of protection beneath these file permissions.
 
-Secrets are exported as global environment variables and are visible to all child processes and to anything that can read process memory or `/proc/<pid>/environ` on Linux. This is the same posture as loading secrets from a `.env` file — convenient for local development, not appropriate for production hosts.
+Secrets are exported as global environment variables and are visible to all child processes. This is the same posture as loading secrets from a `.env` file — convenient for local development, not appropriate for production hosts.
 
-opah will not export security-sensitive variable names such as `PATH`, `LD_PRELOAD`, or `DYLD_*`, and secret values must be `op://` references so arbitrary strings cannot be passed to the 1Password CLI.
+Secret values must be `op://` references — opah will not pass arbitrary strings to the 1Password CLI. opah will not export `PATH` from your config.
 
 ### Non-interactive shells
 

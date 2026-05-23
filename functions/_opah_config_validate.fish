@@ -9,7 +9,7 @@ function _opah_is_op_ref -d "Return 0 if value is a 1Password op:// reference"
 end
 
 #
-# Validate configuration file permissions and ownership
+# Validate configuration file permissions
 #
 # @param config_file Path to secrets configuration file
 # @return 0 if safe to use, 1 otherwise
@@ -22,24 +22,8 @@ function _opah_config_validate -d "Validate configuration file security"
         return 1
     end
 
-    if test -L "$config_file"
-        echo "Configuration file is a symlink: $config_file" >&2
-        return 1
-    end
-
-    if not _opah_file_owned_by_user "$config_file"
-        echo "Configuration file is not owned by the current user: $config_file" >&2
-        return 1
-    end
-
-    set -l perms (_opah_perms "$config_file")
-    if test $status -ne 0
-        echo "Unable to determine configuration file permissions" >&2
-        return 1
-    end
-
     if not _opah_perms_owner_only "$config_file"
-        echo "Configuration file permissions $perms are not secure (expected owner-only, e.g. 600)" >&2
+        echo "Configuration file permissions are not secure (expected owner-only, e.g. 600)" >&2
         return 1
     end
 

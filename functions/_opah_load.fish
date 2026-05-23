@@ -46,9 +46,8 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     end
 
     if not _opah_config_validate "$config_file"
-        _opah_error "Refusing to use insecure configuration file" >&2
+        _opah_warning "Configuration file permissions are not secure" >&2
         _opah_hint "run: chmod 600 $config_file" >&2
-        return 1
     end
 
     # Determine operation mode
@@ -66,29 +65,13 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
     # Use cached secrets if available and not forcing refresh
     if test -f "$cache_file" -a "$force_refresh" = false
-        # Detect stale v0.1.0 cache (executable Fish: `set -gx KEY value`)
-        # New format is tab-separated data; old format causes silent zero-secrets load
-        set -l is_legacy false
-        while read -l line
-            string match -qr '^\s*(#|$)' -- "$line"; and continue
-            if string match -qr '^set -gx ' -- "$line"
-                set is_legacy true
-            end
-            break
-        end <"$cache_file"
-
-        if test "$is_legacy" = false
-            if not _opah_cache_validate_file_for_read "$cache_file"
-                _opah_error "Refusing to load insecure cache file" >&2
-                _opah_hint "run: opah doctor to diagnose cache permissions" >&2
-                return 1
-            end
-            _opah_cache_read "$cache_file" >/dev/null
-            return 0
+        if not _opah_cache_validate_file_for_read "$cache_file"
+            _opah_error "Refusing to load insecure cache file" >&2
+            _opah_hint "run: opah doctor to diagnose cache permissions" >&2
+            return 1
         end
-
-        # Old format detected; fall through to refresh from 1Password
-        _opah_warning "Cache format outdated — refreshing from 1Password" >&2
+        _opah_cache_read "$cache_file" >/dev/null
+        return 0
     end
 
     # Check if 1Password CLI is available

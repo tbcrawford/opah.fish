@@ -3,7 +3,6 @@
 # Run with: fishtape tests/test_config_validate.fish
 
 source (status dirname)/../functions/_opah_perms.fish
-source (status dirname)/../functions/_opah_cache_validate.fish
 source (status dirname)/../functions/_opah_config_validate.fish
 
 set tmp (mktemp -d)

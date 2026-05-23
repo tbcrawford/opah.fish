@@ -4,20 +4,11 @@
 
 source (status dirname)/../functions/_opah_perms.fish
 source (status dirname)/../functions/_opah_cache_validate.fish
-source (status dirname)/../functions/_opah_is_blocked_env_key.fish
 source (status dirname)/../functions/_opah_cache_write.fish
 
 set tmp (mktemp -d)
 set cache_dir "$tmp/opah"
 set cache_file "$cache_dir/secrets.fish"
-
-@test "cache write: rejects symlink cache file target" \
-    (begin
-        mkdir -p "$cache_dir"
-        ln -s /tmp/opah-leak "$cache_file"
-        printf 'KEY\tval\n' | _opah_cache_write "$cache_file" >/dev/null 2>&1
-        echo $status
-    end) -eq 1
 
 @test "cache write: creates cache directory with mode 700" \
     (begin

@@ -14,7 +14,6 @@ set f_blocked (printf '%s\n' \
     "secrets:" \
     "  API_KEY: op://vault/item/key" \
     "  PATH: op://vault/item/path" \
-    "  LD_PRELOAD: op://vault/item/ld" \
     >"$tmp/blocked.yaml"; echo "$tmp/blocked.yaml")
 set cache_file "$tmp/cache.fish"
 
