@@ -72,6 +72,11 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         end <"$cache_file"
 
         if test "$is_legacy" = false
+            if not _opah_cache_validate_file_for_read "$cache_file"
+                _opah_error "Refusing to load insecure cache file" >&2
+                _opah_hint "run: opah doctor to diagnose cache permissions" >&2
+                return 1
+            end
             _opah_cache_read "$cache_file" >/dev/null
             return 0
         end

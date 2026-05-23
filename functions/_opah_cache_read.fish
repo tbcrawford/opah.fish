@@ -14,6 +14,10 @@ function _opah_cache_read -d "Read cache and export secrets to environment"
         return 1
     end
 
+    if not _opah_cache_validate_file_for_read "$cache_file"
+        return 1
+    end
+
     set -l count 0
 
     while read -l line
