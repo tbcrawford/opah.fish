@@ -51,8 +51,12 @@ function _opah_clear -d "Clear cached secrets and environment variables"
     end
 
     for key in (printf '%s\n' $keys | sort -u)
-        if set -q $key
-            set -e $key 2>/dev/null
+        if not string match -qr '^[A-Za-z_][A-Za-z0-9_]*$' -- "$key"
+            continue
+        end
+
+        if set -q -- $key
+            set -e -- $key 2>/dev/null
             _opah_info "Unset $key"
         end
     end

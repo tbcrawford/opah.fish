@@ -20,8 +20,7 @@ function _opah_perms -d "Get file permissions in octal (cross-platform)"
         case Linux
             stat -c '%a' "$file_path"
         case '*'
-            # Fallback: try to parse ls -l output
-            echo unknown
+            return 1
     end
 end
 
@@ -35,6 +34,10 @@ function _opah_perms_owner_only -d "Return 0 when path permissions are owner-onl
     set -l file_path $argv[1]
     set -l perms (_opah_perms "$file_path")
     if test $status -ne 0
+        return 1
+    end
+
+    if not string match -qr '^[0-7]+$' -- "$perms"
         return 1
     end
 

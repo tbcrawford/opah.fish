@@ -52,6 +52,11 @@ function _opah_cache_validate_dir_for_write -d "Validate cache directory is safe
     end
 
     if test -e "$cache_dir"
+        if not test -d "$cache_dir"
+            echo "Cache path is not a directory: $cache_dir" >&2
+            return 1
+        end
+
         if not _opah_file_owned_by_user "$cache_dir"
             echo "Cache directory is not owned by the current user: $cache_dir" >&2
             return 1

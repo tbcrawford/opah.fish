@@ -34,4 +34,12 @@ set cache_file "$cache_dir/secrets.fish"
         echo $status
     end) -eq 1
 
+@test "cache write: rejects regular file at cache directory path" \
+    (begin
+        rm -rf "$cache_dir"
+        touch "$cache_dir"
+        printf 'KEY\tval\n' | _opah_cache_write "$cache_file" >/dev/null 2>&1
+        echo $status
+    end) -eq 1
+
 rm -rf $tmp

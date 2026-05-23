@@ -152,9 +152,17 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         if test $status -eq 0; and test -n "$secret_value"
             # Use _opah_cache_update which copies existing entries as-is (no double-escaping)
             if test -f "$cache_file"
-                _opah_cache_update "$cache_file" "$specific_key" "$secret_value"
+                if not _opah_cache_update "$cache_file" "$specific_key" "$secret_value"
+                    printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
+                    _opah_error "Failed to update cache file securely" >&2
+                    return 1
+                end
             else
-                printf '%s\t%s\n' "$specific_key" "$secret_value" | _opah_cache_write "$cache_file"
+                if not printf '%s\t%s\n' "$specific_key" "$secret_value" | _opah_cache_write "$cache_file"
+                    printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET
+                    _opah_error "Failed to write cache file securely" >&2
+                    return 1
+                end
             end
             set -gx $specific_key "$secret_value"
             printf "%s✓%s\n" $__OPAH_COLOR_SUCCESS $__OPAH_COLOR_RESET
@@ -228,11 +236,21 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
     # Display results and write cache only if at least one secret was loaded
     if test $success_count -eq $total_count; and test $success_count -gt 0
-        _opah_cache_write "$cache_file" <"$temp_entries"
+        if not _opah_cache_write "$cache_file" <"$temp_entries"
+            rm -f "$temp_entries"
+            _opah_error "Failed to write cache file securely" >&2
+            _opah_hint "run: opah doctor to diagnose cache permissions" >&2
+            return 1
+        end
         rm -f "$temp_entries"
         _opah_success "$success_count secrets loaded"
     else if test $success_count -gt 0
-        _opah_cache_write "$cache_file" <"$temp_entries"
+        if not _opah_cache_write "$cache_file" <"$temp_entries"
+            rm -f "$temp_entries"
+            _opah_error "Failed to write cache file securely" >&2
+            _opah_hint "run: opah doctor to diagnose cache permissions" >&2
+            return 1
+        end
         rm -f "$temp_entries"
         _opah_warning "$success_count of $total_count secrets loaded" >&2
         return 1

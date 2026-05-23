@@ -35,6 +35,12 @@ chmod 600 "$test_file"
 @test "perms: returns 644 for a 644-permission file" \
     (begin; chmod 644 "$test_file"; _opah_perms "$test_file"; end) = 644
 
+@test "perms_owner_only: accepts owner-only permissions" \
+    (begin; chmod 600 "$test_file"; _opah_perms_owner_only "$test_file"; echo $status; end) -eq 0
+
+@test "perms_owner_only: rejects world-readable permissions" \
+    (begin; chmod 644 "$test_file"; _opah_perms_owner_only "$test_file"; echo $status; end) -eq 1
+
 @test "perms: exits 0 for an existing file" \
     (_opah_perms "$test_file" >/dev/null; echo $status) -eq 0
 
