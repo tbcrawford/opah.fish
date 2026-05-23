@@ -23,4 +23,14 @@ function _opah_ui -d "Initialize UI color constants"
     set -g __OPAH_COLOR_BOLD (set_color brcyan --bold)
     set -g __OPAH_COLOR_RESET (set_color normal)
     set -g __OPAH_COLOR_SEP (set_color brcyan --dim)
+
+    # set_color returns no argv when stdout is not a TTY; keep one empty
+    # string per slot so printf format args stay aligned in tests and CI.
+    for c in __OPAH_COLOR_SUCCESS __OPAH_COLOR_ERROR __OPAH_COLOR_WARNING \
+        __OPAH_COLOR_INFO __OPAH_COLOR_DIM __OPAH_COLOR_BOLD \
+        __OPAH_COLOR_RESET __OPAH_COLOR_SEP
+        if test (count $$c) -eq 0
+            set -g $c ""
+        end
+    end
 end

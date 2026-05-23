@@ -1,3 +1,5 @@
+source (status dirname)/_opah_is_blocked_env_key.fish
+
 #
 # Parse secrets from YAML configuration file and output as tab-separated stream
 #

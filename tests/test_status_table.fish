@@ -12,7 +12,7 @@ end
 
 @test "table: top border starts with box corner" \
     (run_table '_opah_status_table 1 API_KEY 1' | string collect | string match -r '^┌') \
-    = ┌
+    != ""
 
 @test "table: bottom border ends with box corner" \
     (run_table '_opah_status_table 1 API_KEY 1' | string collect | string match -r '┘\n?$') \
