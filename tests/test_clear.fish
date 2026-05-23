@@ -30,6 +30,7 @@ function _opah_get_cache_dir; echo "$cache_dir"; end
 function _opah_get_cache_file; echo "$cache_file"; end
 
 printf "secrets:\n  OPAH_CLEAR_TEST: op://Vault/Item/field\n" >"$config_file"
+chmod 600 "$config_file"
 
 @test "clear: unsets env vars from tab-separated cache" \
     (begin

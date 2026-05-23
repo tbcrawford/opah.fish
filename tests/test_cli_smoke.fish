@@ -15,6 +15,7 @@ printf '%s\n' \
     'secrets:' \
     '  API_KEY: op://Vault/Item/api_key' \
     '  DATABASE_URL: op://Vault/Item/db_url' >"$config_file"
+chmod 600 "$config_file"
 
 function write_mock_runner -a script_body
     set -l functions_dir_escaped (string escape --style=script -- "$functions_dir")

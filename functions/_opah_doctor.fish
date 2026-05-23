@@ -49,6 +49,18 @@ function _opah_doctor -d "Diagnose and validate complete setup"
         _opah_success "$config_file"
         set -l secret_count (string match -ra "op://" <"$config_file" | count)
         _opah_info "$secret_count secrets defined"
+        set -l config_perms (command stat -f "%OLp" "$config_file" 2>/dev/null; or command stat -c "%a" "$config_file" 2>/dev/null)
+        if test "$config_perms" = 600
+            printf "%s     Config permissions: secure (600)%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        else
+            _opah_warning "Config permissions $config_perms (should be 600)"
+            _opah_hint "run: chmod 600 $config_file"
+            set issues (math $issues + 1)
+        end
+        if test -L "$config_file"
+            _opah_warning "Configuration file is a symlink"
+            set issues (math $issues + 1)
+        end
         # Check for non-1Password values
         set -l non_op (grep -v "op://" "$config_file" | grep -v "secrets:" | grep -v '^#' | grep -v '^$' | grep ":" | count 2>/dev/null)
         if test "$non_op" -gt 0

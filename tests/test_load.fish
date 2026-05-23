@@ -26,6 +26,7 @@ source (status dirname)/../functions/_opah_cache_update.fish
 source (status dirname)/../functions/_opah_cache_keys.fish
 source (status dirname)/../functions/_opah_cache_count.fish
 source (status dirname)/../functions/_opah_parse_yaml.fish
+source (status dirname)/../functions/_opah_config_validate.fish
 source (status dirname)/../functions/_opah_find_config.fish
 source (status dirname)/../functions/_opah_load.fish
 
@@ -36,6 +37,7 @@ set config_file "$tmp/secrets.yaml"
 set cache_file "$tmp/cache/opah/secrets.fish"
 
 printf "secrets:\n  OPAH_LOAD_KEY1: op://Vault/Item/field1\n  OPAH_LOAD_KEY2: op://Vault/Item/field2\n" >"$config_file"
+chmod 600 "$config_file"
 
 # Mock `op` CLI — no real 1Password needed
 function op

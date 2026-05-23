@@ -45,6 +45,12 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         return 1
     end
 
+    if not _opah_config_validate "$config_file"
+        _opah_error "Refusing to use insecure configuration file" >&2
+        _opah_hint "run: chmod 600 $config_file" >&2
+        return 1
+    end
+
     # Determine operation mode
     set -l force_refresh false
     set -l specific_key ""
@@ -133,6 +139,11 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             return 1
         end
 
+        if not _opah_is_op_ref "$op_ref"
+            _opah_error "Secret '$specific_key' must use an op:// reference" >&2
+            return 1
+        end
+
         set -l col_width (math (string length "$specific_key") + 5)
         set -l key_dots "$specific_key..."
         printf "  %s%-*s%s" $__OPAH_COLOR_DIM $col_width "$key_dots" $__OPAH_COLOR_RESET
@@ -185,6 +196,12 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         if _opah_is_blocked_env_key "$key"
             printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2
             _opah_error "Skipping blocked key '$key'" >&2
+            continue
+        end
+
+        if not _opah_is_op_ref "$op_ref"
+            printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2
+            _opah_error "Skipping '$key': value must be an op:// reference" >&2
             continue
         end
 

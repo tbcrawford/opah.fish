@@ -13,6 +13,7 @@ set cache_file "$cache_dir/secrets.fish"
 set runner_file "$tmp/autoload-runner.fish"
 
 printf "secrets:\n  AUTOLOAD_TEST_KEY: op://Vault/Item/field\n" >"$config_file"
+chmod 600 "$config_file"
 
 set -l functions_dir_esc (string escape --style=script -- "$repo_root/functions")
 set -l config_esc (string escape --style=script -- "$config_file")
