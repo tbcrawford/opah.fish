@@ -22,8 +22,8 @@ if status --is-interactive
         end
     end
 else
-    # Non-interactive shells load secrets unless OPAH_AUTOLOAD=0.
-    if test "$OPAH_AUTOLOAD" != 0
+    # Non-interactive shells load secrets only when OPAH_AUTOLOAD=1.
+    if test "$OPAH_AUTOLOAD" = 1
         _opah_load
     end
 end

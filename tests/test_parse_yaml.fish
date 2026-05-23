@@ -90,5 +90,18 @@ set f_invalid_keys (make_yaml inv  "secrets:\n  valid_key: op://v/i/f\n  123inva
 @test "parse_yaml: skips key starting with digit" \
     (_opah_parse_yaml $f_invalid_keys) = (printf 'valid_key\top://v/i/f')
 
+# ── Blocked keys ──────────────────────────────────────────────────────────────
+
+set f_blocked (make_yaml blocked "secrets:\n  API_KEY: op://vault/item/key\n  PATH: op://vault/item/path\n")
+
+@test "blocked key: PATH is blocked" \
+    (_opah_is_blocked_env_key PATH; echo $status) -eq 0
+
+@test "blocked key: API_KEY is allowed" \
+    (_opah_is_blocked_env_key API_KEY; echo $status) -eq 1
+
+@test "parse_yaml: skips blocked keys" \
+    (_opah_parse_yaml $f_blocked | count) -eq 1
+
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 rm -rf $tmp

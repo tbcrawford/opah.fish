@@ -4,8 +4,7 @@
 # Install fishtape: fisher install jorgebucaran/fishtape
 
 source (status dirname)/../functions/_opah_perms.fish
-source (status dirname)/../functions/_opah_cache_validate.fish
-source (status dirname)/../functions/_opah_is_blocked_env_key.fish
+source (status dirname)/../functions/_opah_cache_prepare_dir.fish
 source (status dirname)/../functions/_opah_cache_read.fish
 source (status dirname)/../functions/_opah_cache_write.fish
 source (status dirname)/../functions/_opah_cache_update.fish
@@ -35,6 +34,29 @@ end
 
 @test "cache_write: exits 0 on success" \
     (printf 'A\t1\n' | _opah_cache_write "$cache_file" >/dev/null; echo $status) -eq 0
+
+@test "cache_write: creates cache directory with mode 700" \
+    (begin
+        set -l cache_dir (dirname "$tmp/new-cache/secrets.fish")
+        rm -rf "$cache_dir"
+        printf 'KEY\tval\n' | _opah_cache_write "$tmp/new-cache/secrets.fish" >/dev/null
+        _opah_perms "$cache_dir"
+    end) = 700
+
+@test "cache_write: fixes world-accessible cache directory to 700" \
+    (begin
+        set -l cache_dir "$tmp/loose-dir"
+        rm -rf "$cache_dir"
+        mkdir -m 755 -p "$cache_dir"
+        printf 'KEY\tval\n' | _opah_cache_write "$cache_dir/secrets.fish" >/dev/null 2>&1
+        if test $status -ne 0
+            echo fail-status
+            return
+        end
+        if test (_opah_perms "$cache_dir") = 700
+            echo ok
+        end
+    end) = ok
 
 # ── _opah_cache_read ──────────────────────────────────────────────────────────
 

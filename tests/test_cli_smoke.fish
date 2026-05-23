@@ -77,22 +77,6 @@ function reset_cache
     rm -rf "$cache_dir"
 end
 
-function assert_refresh_creates_cache
-    reset_cache
-    set -l refresh_status (run_mocked_cli_status 'opah refresh >/dev/null')
-    if test "$refresh_status" -eq 0; and test -f "$cache_file"
-        echo ok
-    end
-end
-
-function assert_status_ok
-    reset_cache
-    set -l cli_status (run_mocked_cli_status 'opah refresh >/dev/null; and opah status API_KEY >/dev/null')
-    if test "$cli_status" -eq 0
-        echo ok
-    end
-end
-
 @test "cli smoke: bare opah shows help" \
     (begin
         set -l output (run_mocked_cli 'opah')
@@ -119,14 +103,22 @@ end
         end
     end) = ok
 
-@test "cli smoke: refresh creates cache file" \
+@test "cli smoke: opah refresh succeeds with mocked op and writes cache" \
     (begin
-        assert_refresh_creates_cache
+        reset_cache
+        set -l output (run_mocked_cli 'opah refresh')
+        if string match -q '*2 secrets loaded*' -- $output; and test -f "$cache_file"
+            echo ok
+        end
     end) = ok
 
 @test "cli smoke: opah status reports mocked secret as cached and loaded" \
     (begin
-        assert_status_ok
+        reset_cache
+        set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah status API_KEY')
+        if string match -q '*Cached*' -- $output; and string match -q '*Loaded*' -- $output
+            echo ok
+        end
     end) = ok
 
 @test "cli smoke: opah clear removes mocked cache" \
@@ -147,22 +139,43 @@ end
         end
     end) = ok
 
-@test "cli smoke: opah reinit reloads mocked secrets" (begin; reset_cache; run_mocked_cli_status 'opah reinit >/dev/null'; end) -eq 0
+@test "cli smoke: opah reinit reloads mocked secrets" \
+    (begin
+        reset_cache
+        set -l output (run_mocked_cli 'opah reinit >/dev/null; and echo $API_KEY; and test -f (_opah_get_cache_file); and echo cache-present')
+        if string match -q '*mock-api-key*' -- $output; and string match -q '*cache-present*' -- $output
+            echo ok
+        end
+    end) = ok
 
-@test "cli smoke: all mocked subcommands exit successfully" (begin; reset_cache; run_mocked_cli_status 'opah help >/dev/null; and opah config >/dev/null; and opah refresh >/dev/null; and opah clear >/dev/null; and opah doctor >/dev/null'; end) -eq 0
+@test "cli smoke: all mocked subcommands exit successfully" \
+    (begin
+        reset_cache
+        set -l status_help (run_mocked_cli_status 'opah help')
+        set -l status_config (run_mocked_cli_status 'opah config')
+        set -l status_refresh (run_mocked_cli_status 'opah refresh')
+        set -l status_status (run_mocked_cli_status 'opah refresh >/dev/null; and opah status API_KEY')
+        set -l status_clear (run_mocked_cli_status 'opah refresh >/dev/null; and opah clear')
+        set -l status_doctor (run_mocked_cli_status 'opah refresh >/dev/null; and opah doctor')
+        set -l status_reinit (run_mocked_cli_status 'opah reinit')
 
-@test "conf.d: non-interactive shell loads secrets from cache into environment" \
+        if test "$status_help" -eq 0; and test "$status_config" -eq 0; and test "$status_refresh" -eq 0; and test "$status_status" -eq 0; and test "$status_clear" -eq 0; and test "$status_doctor" -eq 0; and test "$status_reinit" -eq 0
+            echo ok
+        end
+    end) = ok
+
+@test "conf.d: non-interactive shell does not load secrets by default" \
     (begin
         reset_cache
         run_mocked_cli 'opah refresh' >/dev/null 2>&1
-        fish --no-config (write_mock_runner "source $repo_root/conf.d/opah.fish >/dev/null 2>&1; echo \$API_KEY") 2>/dev/null
-    end) = mock-api-key
-
-@test "conf.d: OPAH_AUTOLOAD=0 skips loading in non-interactive shell" \
-    (begin
-        reset_cache
-        run_mocked_cli 'opah refresh' >/dev/null 2>&1
-        fish --no-config (write_mock_runner "set -gx OPAH_AUTOLOAD 0; source $repo_root/conf.d/opah.fish >/dev/null 2>&1; if set -q API_KEY; echo loaded; else echo skipped; end") 2>/dev/null
+        fish --no-config (write_mock_runner "source $repo_root/conf.d/opah.fish >/dev/null 2>&1; if set -q API_KEY; echo loaded; else echo skipped; end") 2>/dev/null
     end) = skipped
+
+@test "conf.d: OPAH_AUTOLOAD=1 loads secrets in non-interactive shell" \
+    (begin
+        reset_cache
+        run_mocked_cli 'opah refresh' >/dev/null 2>&1
+        fish --no-config (write_mock_runner "set -gx OPAH_AUTOLOAD 1; source $repo_root/conf.d/opah.fish >/dev/null 2>&1; echo \$API_KEY") 2>/dev/null
+    end) = mock-api-key
 
 rm -rf "$tmp"

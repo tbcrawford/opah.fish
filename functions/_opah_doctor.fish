@@ -76,7 +76,7 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     if test -d "$cache_dir"
         _opah_success "Cache directory exists" "$cache_dir"
         set -l dir_perms (_opah_perms "$cache_dir")
-        if _opah_perms_secure_cache_dir "$cache_dir"
+        if test "$dir_perms" = 700
             printf "%s     Directory permissions: secure (%s)%s\n" $__OPAH_COLOR_DIM "$dir_perms" $__OPAH_COLOR_RESET
         else
             _opah_warning "Cache directory permissions $dir_perms (should be 700)"

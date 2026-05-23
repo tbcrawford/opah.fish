@@ -21,24 +21,13 @@ function _opah_clear -d "Clear cached secrets and environment variables"
 
     set -l cache_file (_opah_get_cache_file)
 
-    # Unset environment variables from cache
-    set -l keys
+    # Unset environment variables listed in the cache
     if test -f "$cache_file"
-        set -a keys (_opah_cache_keys "$cache_file")
-    end
-
-    for key in $keys
-        if not string match -qr '^[A-Za-z_][A-Za-z0-9_]*$' -- "$key"
-            continue
-        end
-
-        if _opah_is_blocked_env_key "$key"
-            continue
-        end
-
-        if set -q -- $key
-            set -e -- $key 2>/dev/null
-            _opah_info "Unset $key"
+        for key in (_opah_cache_keys "$cache_file")
+            if set -q -- $key
+                set -e -- $key 2>/dev/null
+                _opah_info "Unset $key"
+            end
         end
     end
 

@@ -65,11 +65,6 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
     # Use cached secrets if available and not forcing refresh
     if test -f "$cache_file" -a "$force_refresh" = false
-        if not _opah_cache_validate_file_for_read "$cache_file"
-            _opah_error "Refusing to load insecure cache file" >&2
-            _opah_hint "run: opah doctor to diagnose cache permissions" >&2
-            return 1
-        end
         _opah_cache_read "$cache_file" >/dev/null
         return 0
     end
@@ -93,7 +88,7 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
     # Create cache directory if needed
     if not _opah_cache_prepare_dir "$cache_dir"
-        _opah_error "Unsafe cache directory" >&2
+        _opah_error "Unable to create cache directory" >&2
         return 1
     end
 
@@ -114,11 +109,6 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
 
         if test -z "$op_ref"
             _opah_error "Secret '$specific_key' not found in configuration" >&2
-            return 1
-        end
-
-        if _opah_is_blocked_env_key "$specific_key"
-            _opah_error "Secret '$specific_key' is a blocked environment variable name" >&2
             return 1
         end
 
@@ -183,12 +173,6 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         set -l key $all_keys[$i]
         set -l op_ref $all_refs[$i]
         set total_count (math $total_count + 1)
-
-        if _opah_is_blocked_env_key "$key"
-            printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2
-            _opah_error "Skipping blocked key '$key'" >&2
-            continue
-        end
 
         if not _opah_is_op_ref "$op_ref"
             printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2

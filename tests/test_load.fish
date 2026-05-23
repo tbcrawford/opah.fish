@@ -18,8 +18,7 @@ source (status dirname)/../functions/_opah_get_cache_dir.fish
 source (status dirname)/../functions/_opah_get_cache_file.fish
 source (status dirname)/../functions/_opah_mtime.fish
 source (status dirname)/../functions/_opah_perms.fish
-source (status dirname)/../functions/_opah_cache_validate.fish
-source (status dirname)/../functions/_opah_is_blocked_env_key.fish
+source (status dirname)/../functions/_opah_cache_prepare_dir.fish
 source (status dirname)/../functions/_opah_cache_read.fish
 source (status dirname)/../functions/_opah_cache_write.fish
 source (status dirname)/../functions/_opah_cache_update.fish
@@ -200,41 +199,23 @@ printf 'OPAH_CACHED_KEY\tcached_value\n' | _opah_cache_write "$cache_file" >/dev
         echo $status
     end) -eq 1
 
-# ── Load: legacy cache format migration ──────────────────────────────────────
+# ── Config validation ─────────────────────────────────────────────────────────
 
-@test "load: exits 0 after detecting and migrating v0.1.0 legacy cache format" \
+@test "config validate: accepts secure config file" \
+    (_opah_config_validate "$config_file" >/dev/null 2>&1; echo $status) -eq 0
+
+@test "config validate: rejects world-readable config" \
     (begin
-        mock_opah_paths
-        function op
-            switch "$argv[1]"
-                case read; echo "fresh_value"; return 0
-                case account; printf '[{}]\n'; return 0
-            end
-        end
-        # Write legacy cache (v0.1.0: executable Fish code with set -gx)
-        mkdir -p (dirname "$cache_file")
-        printf "# Cached secrets from 1Password CLI\nset -gx OPAH_LEGACY_KEY 'old_value'\n" >"$cache_file"
-        chmod 600 "$cache_file"
-        _opah_load >/dev/null 2>&1
+        chmod 644 "$config_file"
+        _opah_config_validate "$config_file" >/dev/null 2>&1
         echo $status
-    end) -eq 0
+    end) -eq 1
 
-@test "load: after legacy cache migration, sets secrets from current config (not old cache)" \
-    (begin
-        mock_opah_paths
-        function op
-            switch "$argv[1]"
-                case read; echo "fresh_value"; return 0
-                case account; printf '[{}]\n'; return 0
-            end
-        end
-        mkdir -p (dirname "$cache_file")
-        printf "# Cached secrets from 1Password CLI\nset -gx OPAH_LEGACY_KEY 'old_value'\n" >"$cache_file"
-        chmod 600 "$cache_file"
-        set -e OPAH_LOAD_KEY1
-        _opah_load >/dev/null 2>&1
-        echo $OPAH_LOAD_KEY1
-    end) = fresh_value
+@test "is_op_ref: accepts op:// reference" \
+    (_opah_is_op_ref "op://vault/item/field"; echo $status) -eq 0
+
+@test "is_op_ref: rejects postgres URL" \
+    (_opah_is_op_ref "postgres://user:pass@host/db"; echo $status) -eq 1
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 rm -rf $tmp

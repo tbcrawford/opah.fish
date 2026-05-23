@@ -106,10 +106,10 @@ Secret values must be `op://` references — opah will not pass arbitrary string
 
 ### Non-interactive shells
 
-By default, non-interactive Fish shells (`fish -c`, scripts) also load secrets (`OPAH_AUTOLOAD=1`). To prevent scripts and CI jobs from inheriting credentials, disable autoload before starting Fish:
+By default, non-interactive Fish shells (`fish -c`, scripts) do **not** load secrets. Set `OPAH_AUTOLOAD=1` when a script should inherit credentials:
 
 ```fish
-set -gx OPAH_AUTOLOAD 0
+set -gx OPAH_AUTOLOAD 1
 fish -c 'your-script.fish'
 ```
 
