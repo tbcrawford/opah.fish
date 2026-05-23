@@ -168,7 +168,14 @@ end
     (begin
         reset_cache
         run_mocked_cli 'opah refresh' >/dev/null 2>&1
-        fish --no-config (write_mock_runner "source $repo_root/conf.d/opah.fish; echo \$API_KEY") 2>/dev/null
+        fish --no-config (write_mock_runner "source $repo_root/conf.d/opah.fish >/dev/null 2>&1; echo \$API_KEY") 2>/dev/null
     end) = mock-api-key
+
+@test "conf.d: OPAH_AUTOLOAD=0 skips loading in non-interactive shell" \
+    (begin
+        reset_cache
+        run_mocked_cli 'opah refresh' >/dev/null 2>&1
+        fish --no-config (write_mock_runner "set -gx OPAH_AUTOLOAD 0; source $repo_root/conf.d/opah.fish >/dev/null 2>&1; if set -q API_KEY; echo loaded; else echo skipped; end") 2>/dev/null
+    end) = skipped
 
 rm -rf "$tmp"
