@@ -96,9 +96,24 @@ The cache is stored at `~/.cache/fish/opah/secrets.fish` with `600` permissions.
 
 ## Security
 
-Cached secrets are stored in plaintext on disk. Use `opah clear` before walking away from a shared machine. On personal machines, whole-disk encryption provides the appropriate layer of protection beneath the `600` file permissions opah sets on the cache.
+Cached secrets are stored in plaintext on disk at `~/.cache/fish/opah/secrets.fish`. opah creates the cache directory with mode `700` and the cache file with mode `600`. Both the cache and your `secrets.yaml` config must be owned by you and must not be symlinks — opah refuses to read or write otherwise.
 
-Secrets are exported as global environment variables and are visible to all child processes. This is the same posture as loading secrets from a `.env` file — convenient for local development, not appropriate for production hosts.
+Use `opah clear` before walking away from a shared machine. On personal machines, whole-disk encryption provides the appropriate layer of protection beneath these file permissions.
+
+Secrets are exported as global environment variables and are visible to all child processes and to anything that can read process memory or `/proc/<pid>/environ` on Linux. This is the same posture as loading secrets from a `.env` file — convenient for local development, not appropriate for production hosts.
+
+opah will not export security-sensitive variable names such as `PATH`, `LD_PRELOAD`, or `DYLD_*`, and secret values must be `op://` references so arbitrary strings cannot be passed to the 1Password CLI.
+
+### Non-interactive shells
+
+By default, non-interactive Fish shells (`fish -c`, scripts) also load secrets (`OPAH_AUTOLOAD=1`). To prevent scripts and CI jobs from inheriting credentials, disable autoload before starting Fish:
+
+```fish
+set -gx OPAH_AUTOLOAD 0
+fish -c 'your-script.fish'
+```
+
+Interactive shells always load secrets on the first prompt regardless of this setting.
 
 ---
 
