@@ -20,6 +20,7 @@ function _opah_perms -d "Get file permissions in octal (cross-platform)"
         case Linux
             stat -c '%a' "$file_path"
         case '*'
+            echo "Unable to determine file permissions on this platform" >&2
             return 1
     end
 end

@@ -62,8 +62,13 @@ function _opah_cache_validate_dir_for_write -d "Validate cache directory is safe
             return 1
         end
 
-        if not _opah_perms_secure_cache_dir "$cache_dir"
-            set -l perms (_opah_perms "$cache_dir")
+        set -l perms (_opah_perms "$cache_dir")
+        if test $status -ne 0
+            echo "Unable to determine cache directory permissions" >&2
+            return 1
+        end
+
+        if test "$perms" != 700
             echo "Cache directory permissions $perms are not secure (expected 700)" >&2
             return 1
         end
@@ -128,6 +133,11 @@ function _opah_cache_validate_file_for_read -d "Validate cache file is safe to r
     end
 
     set -l perms (_opah_perms "$cache_file")
+    if test $status -ne 0
+        echo "Unable to determine cache file permissions" >&2
+        return 1
+    end
+
     if test "$perms" != 600
         echo "Cache file permissions $perms are not secure (expected 600)" >&2
         return 1

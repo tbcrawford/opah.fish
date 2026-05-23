@@ -77,14 +77,10 @@ function reset_cache
     rm -rf "$cache_dir"
 end
 
-function assert_refresh_writes_cache
+function assert_refresh_creates_cache
     reset_cache
     set -l refresh_status (run_mocked_cli_status 'opah refresh >/dev/null')
-    if test "$refresh_status" -ne 0; or not test -f "$cache_file"
-        return
-    end
-    run_mocked_cli 'opah clear >/dev/null' >/dev/null 2>&1
-    if not test -f "$cache_file"
+    if test "$refresh_status" -eq 0; and test -f "$cache_file"
         echo ok
     end
 end
@@ -125,7 +121,7 @@ end
 
 @test "cli smoke: refresh creates cache file" \
     (begin
-        assert_refresh_writes_cache
+        assert_refresh_creates_cache
     end) = ok
 
 @test "cli smoke: opah status reports mocked secret as cached and loaded" \

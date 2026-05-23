@@ -61,12 +61,12 @@ chmod 600 "$config_file"
         if set -q OPAH_LEGACY_CLEAR; echo still-set; else echo cleared; end
     end) = cleared
 
-@test "clear: does not unset blocked environment variable names" \
+@test "clear: skips blocked keys like PATH when unsetting cache vars" \
     (begin
-        printf 'PATH\t/evil\nOPAH_BLOCKED_CLEAR\tsecret\n' | _opah_cache_write "$cache_file" >/dev/null
-        set -gx OPAH_BLOCKED_CLEAR secret
+        printf 'PATH\t/evil\nOPAH_CLEAR_TEST\tsecret\n' | _opah_cache_write "$cache_file" >/dev/null
+        set -gx OPAH_CLEAR_TEST secret
         _opah_clear --quiet >/dev/null
-        if set -q OPAH_BLOCKED_CLEAR; echo fail-blocked; return; end
+        if set -q OPAH_CLEAR_TEST; echo fail-secret; return; end
         if test -z "$PATH"; echo fail-path; return; end
         echo ok
     end) = ok
