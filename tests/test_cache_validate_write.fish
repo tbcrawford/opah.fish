@@ -26,4 +26,12 @@ set cache_file "$cache_dir/secrets.fish"
         _opah_perms "$cache_dir"
     end) = 700
 
+@test "cache write: rejects world-accessible cache directory" \
+    (begin
+        rm -rf "$cache_dir"
+        mkdir -m 755 -p "$cache_dir"
+        printf 'KEY\tval\n' | _opah_cache_write "$cache_file" >/dev/null 2>&1
+        echo $status
+    end) -eq 1
+
 rm -rf $tmp

@@ -2,6 +2,8 @@
 #
 # Run with: fishtape tests/test_blocked_keys.fish
 
+source (status dirname)/../functions/_opah_perms.fish
+source (status dirname)/../functions/_opah_cache_validate.fish
 source (status dirname)/../functions/_opah_is_blocked_env_key.fish
 source (status dirname)/../functions/_opah_parse_yaml.fish
 source (status dirname)/../functions/_opah_cache_read.fish

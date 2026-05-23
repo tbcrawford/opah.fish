@@ -49,16 +49,20 @@ function _opah_doctor -d "Diagnose and validate complete setup"
         _opah_success "$config_file"
         set -l secret_count (string match -ra "op://" <"$config_file" | count)
         _opah_info "$secret_count secrets defined"
-        set -l config_perms (command stat -f "%OLp" "$config_file" 2>/dev/null; or command stat -c "%a" "$config_file" 2>/dev/null)
-        if test "$config_perms" = 600
-            printf "%s     Config permissions: secure (600)%s\n" $__OPAH_COLOR_DIM $__OPAH_COLOR_RESET
+        set -l config_perms (_opah_perms "$config_file")
+        if _opah_perms_owner_only "$config_file"
+            printf "%s     Config permissions: secure (%s)%s\n" $__OPAH_COLOR_DIM "$config_perms" $__OPAH_COLOR_RESET
         else
-            _opah_warning "Config permissions $config_perms (should be 600)"
+            _opah_warning "Config permissions $config_perms (should be owner-only, e.g. 600)"
             _opah_hint "run: chmod 600 $config_file"
             set issues (math $issues + 1)
         end
         if test -L "$config_file"
             _opah_warning "Configuration file is a symlink"
+            set issues (math $issues + 1)
+        end
+        if not _opah_file_owned_by_user "$config_file"
+            _opah_warning "Configuration file is not owned by the current user"
             set issues (math $issues + 1)
         end
         # Check for non-1Password values
@@ -79,6 +83,14 @@ function _opah_doctor -d "Diagnose and validate complete setup"
     set -l cache_dir (_opah_get_cache_dir)
     if test -d "$cache_dir"
         _opah_success "Cache directory exists" "$cache_dir"
+        set -l dir_perms (_opah_perms "$cache_dir")
+        if _opah_perms_owner_only "$cache_dir"
+            printf "%s     Directory permissions: secure (%s)%s\n" $__OPAH_COLOR_DIM "$dir_perms" $__OPAH_COLOR_RESET
+        else
+            _opah_warning "Cache directory permissions $dir_perms (should be owner-only, e.g. 700)"
+            _opah_hint "run: chmod 700 $cache_dir"
+            set issues (math $issues + 1)
+        end
     else
         _opah_warning "Cache directory missing (created automatically on refresh)"
     end

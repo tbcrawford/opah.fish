@@ -234,7 +234,8 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     else if test $success_count -gt 0
         _opah_cache_write "$cache_file" <"$temp_entries"
         rm -f "$temp_entries"
-        _opah_warning "$success_count of $total_count secrets loaded"
+        _opah_warning "$success_count of $total_count secrets loaded" >&2
+        return 1
     else
         rm -f "$temp_entries"
         _opah_error "No secrets loaded" >&2

@@ -24,3 +24,19 @@ function _opah_perms -d "Get file permissions in octal (cross-platform)"
             echo unknown
     end
 end
+
+#
+# Return whether a path has no group/other permission bits
+#
+# @param file_path Path to inspect
+# @return 0 if owner-only (e.g. 600, 400, 700), 1 otherwise
+#
+function _opah_perms_owner_only -d "Return 0 when path permissions are owner-only"
+    set -l file_path $argv[1]
+    set -l perms (_opah_perms "$file_path")
+    if test $status -ne 0
+        return 1
+    end
+
+    test (math $perms % 100) -eq 0
+end

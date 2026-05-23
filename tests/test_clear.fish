@@ -6,6 +6,9 @@ source (status dirname)/../functions/_opah_get_config_paths.fish
 source (status dirname)/../functions/_opah_get_cache_dir.fish
 source (status dirname)/../functions/_opah_get_cache_file.fish
 source (status dirname)/../functions/_opah_find_config.fish
+source (status dirname)/../functions/_opah_perms.fish
+source (status dirname)/../functions/_opah_cache_validate.fish
+source (status dirname)/../functions/_opah_is_blocked_env_key.fish
 source (status dirname)/../functions/_opah_parse_yaml.fish
 source (status dirname)/../functions/_opah_cache_keys.fish
 source (status dirname)/../functions/_opah_cache_read.fish
@@ -41,7 +44,11 @@ chmod 600 "$config_file"
 @test "clear: unsets env vars from tab-separated cache" \
     (begin
         printf 'OPAH_CLEAR_TEST\tcached_value\n' | _opah_cache_write "$cache_file" >/dev/null
-        _opah_cache_read "$cache_file" >/dev/null
+        set -l loaded (_opah_cache_read "$cache_file")
+        if test "$loaded" -ne 1; or not set -q OPAH_CLEAR_TEST
+            echo setup-failed
+            return
+        end
         _opah_clear --quiet >/dev/null
         if set -q OPAH_CLEAR_TEST; echo still-set; else echo cleared; end
     end) = cleared

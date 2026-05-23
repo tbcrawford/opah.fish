@@ -32,9 +32,9 @@ function _opah_config_validate -d "Validate configuration file security"
         return 1
     end
 
-    set -l perms (_opah_perms "$config_file")
-    if test "$perms" != 600
-        echo "Configuration file permissions $perms are not secure (expected 600)" >&2
+    if not _opah_perms_owner_only "$config_file"
+        set -l perms (_opah_perms "$config_file")
+        echo "Configuration file permissions $perms are not secure (expected owner-only, e.g. 600)" >&2
         return 1
     end
 

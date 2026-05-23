@@ -56,6 +56,12 @@ function _opah_cache_validate_dir_for_write -d "Validate cache directory is safe
             echo "Cache directory is not owned by the current user: $cache_dir" >&2
             return 1
         end
+
+        if test -d "$cache_dir"; and not _opah_perms_owner_only "$cache_dir"
+            set -l perms (_opah_perms "$cache_dir")
+            echo "Cache directory permissions $perms are not secure (expected owner-only, e.g. 700)" >&2
+            return 1
+        end
     end
 
     return 0

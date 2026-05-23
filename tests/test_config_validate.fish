@@ -22,6 +22,13 @@ chmod 600 "$config_file"
         echo $status
     end) -eq 1
 
+@test "config validate: accepts owner-read-only config" \
+    (begin
+        chmod 400 "$config_file"
+        _opah_config_validate "$config_file" >/dev/null 2>&1
+        echo $status
+    end) -eq 0
+
 @test "is_op_ref: accepts op:// reference" \
     (_opah_is_op_ref "op://vault/item/field"; echo $status) -eq 0
 
