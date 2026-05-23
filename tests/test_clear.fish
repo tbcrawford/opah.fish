@@ -25,9 +25,15 @@ set config_file "$tmp/secrets.yaml"
 set cache_dir "$tmp/cache/opah"
 set cache_file "$cache_dir/secrets.fish"
 
-function _opah_get_config_paths; echo "$config_file"; end
-function _opah_get_cache_dir; echo "$cache_dir"; end
-function _opah_get_cache_file; echo "$cache_file"; end
+function _opah_get_config_paths
+    echo "$config_file"
+end
+function _opah_get_cache_dir
+    echo "$cache_dir"
+end
+function _opah_get_cache_file
+    echo "$cache_file"
+end
 
 printf "secrets:\n  OPAH_CLEAR_TEST: op://Vault/Item/field\n" >"$config_file"
 chmod 600 "$config_file"
