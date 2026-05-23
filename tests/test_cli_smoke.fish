@@ -79,16 +79,20 @@ end
 
 function assert_refresh_writes_cache
     reset_cache
-    set -l output (run_mocked_cli 'opah refresh >/dev/null; and opah clear; and echo cache-missing')
-    if string match -q '*cache-missing*' -- $output
+    set -l refresh_status (run_mocked_cli_status 'opah refresh >/dev/null')
+    if test "$refresh_status" -ne 0; or not test -f "$cache_file"
+        return
+    end
+    run_mocked_cli 'opah clear >/dev/null' >/dev/null 2>&1
+    if not test -f "$cache_file"
         echo ok
     end
 end
 
 function assert_status_ok
     reset_cache
-    run_mocked_cli_status 'opah refresh >/dev/null; and opah status API_KEY >/dev/null' >/dev/null
-    if test $status -eq 0
+    set -l cli_status (run_mocked_cli_status 'opah refresh >/dev/null; and opah status API_KEY >/dev/null')
+    if test "$cli_status" -eq 0
         echo ok
     end
 end

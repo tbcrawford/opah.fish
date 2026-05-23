@@ -53,4 +53,12 @@ chmod 600 "$config_file"
         if set -q OPAH_CLEAR_TEST; echo still-set; else echo cleared; end
     end) = cleared
 
+@test "clear: unsets env vars from legacy set -gx cache" \
+    (begin
+        printf '# legacy cache\nset -gx OPAH_LEGACY_CLEAR old_value\n' >"$cache_file"
+        set -gx OPAH_LEGACY_CLEAR old_value
+        _opah_clear --quiet >/dev/null
+        if set -q OPAH_LEGACY_CLEAR; echo still-set; else echo cleared; end
+    end) = cleared
+
 rm -rf $tmp
