@@ -18,6 +18,10 @@ function _opah_cache_update -d "Update single secret in cache"
         return 1
     end
 
+    if not _opah_cache_validate_file_for_write "$cache_file"
+        return 1
+    end
+
     # Create temp file
     set -l temp_cache (mktemp)
     chmod 600 "$temp_cache"

@@ -98,7 +98,10 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
     echo
 
     # Create cache directory if needed
-    mkdir -p "$cache_dir"
+    if not _opah_cache_prepare_dir "$cache_dir"
+        _opah_error "Unsafe cache directory" >&2
+        return 1
+    end
 
     # Handle single-key refresh separately to avoid double-escaping existing cache entries
     if test -n "$specific_key"

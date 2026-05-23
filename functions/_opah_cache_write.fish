@@ -12,8 +12,13 @@ function _opah_cache_write -d "Write secrets to cache atomically"
     set -l cache_file $argv[1]
     set -l cache_dir (dirname "$cache_file")
 
-    # Create cache directory if needed
-    mkdir -p "$cache_dir"
+    if not _opah_cache_prepare_dir "$cache_dir"
+        return 1
+    end
+
+    if not _opah_cache_validate_file_for_write "$cache_file"
+        return 1
+    end
 
     # Create temp file with secure permissions
     set -l temp_cache (mktemp)
