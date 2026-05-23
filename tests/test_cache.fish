@@ -3,6 +3,7 @@
 # Run with: fishtape tests/test_cache.fish
 # Install fishtape: fisher install jorgebucaran/fishtape
 
+source (status dirname)/../functions/_opah_is_blocked_env_key.fish
 source (status dirname)/../functions/_opah_cache_read.fish
 source (status dirname)/../functions/_opah_cache_write.fish
 source (status dirname)/../functions/_opah_cache_update.fish

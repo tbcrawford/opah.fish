@@ -3,6 +3,7 @@
 # Run with: fishtape tests/test_parse_yaml.fish
 # Install fishtape: fisher install jorgebucaran/fishtape
 
+source (status dirname)/../functions/_opah_is_blocked_env_key.fish
 source (status dirname)/../functions/_opah_parse_yaml.fish
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────

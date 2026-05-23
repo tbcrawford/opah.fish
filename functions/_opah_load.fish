@@ -120,6 +120,11 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
             return 1
         end
 
+        if _opah_is_blocked_env_key "$specific_key"
+            _opah_error "Secret '$specific_key' is a blocked environment variable name" >&2
+            return 1
+        end
+
         set -l col_width (math (string length "$specific_key") + 5)
         set -l key_dots "$specific_key..."
         printf "  %s%-*s%s" $__OPAH_COLOR_DIM $col_width "$key_dots" $__OPAH_COLOR_RESET
@@ -168,6 +173,12 @@ function _opah_load --description "Load secrets from 1Password CLI with data-bas
         set -l key $all_keys[$i]
         set -l op_ref $all_refs[$i]
         set total_count (math $total_count + 1)
+
+        if _opah_is_blocked_env_key "$key"
+            printf "%s✕%s\n" $__OPAH_COLOR_ERROR $__OPAH_COLOR_RESET >&2
+            _opah_error "Skipping blocked key '$key'" >&2
+            continue
+        end
 
         set -l key_dots "$key..."
         printf "  %s%-*s%s" $__OPAH_COLOR_DIM $col_width "$key_dots" $__OPAH_COLOR_RESET

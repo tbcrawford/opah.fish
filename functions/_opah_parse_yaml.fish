@@ -65,6 +65,10 @@ function _opah_parse_yaml -d "Parse secrets from YAML configuration file and out
 
                 # Validate key is a valid environment variable name
                 if string match -qr '^[A-Za-z_][A-Za-z0-9_]*$' "$key"
+                    if _opah_is_blocked_env_key "$key"
+                        echo "Warning: Skipping blocked key '$key' (security-sensitive environment variable)" >&2
+                        continue
+                    end
                     # Output as tab-separated stream
                     if test -n "$key"; and test -n "$value"
                         printf '%s\t%s\n' "$key" "$value"

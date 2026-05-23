@@ -35,6 +35,10 @@ function _opah_cache_read -d "Read cache and export secrets to environment"
                 continue
             end
 
+            if _opah_is_blocked_env_key "$key"
+                continue
+            end
+
             # Unescape the value safely
             set -l value (string unescape --style=script "$escaped_value")
 
