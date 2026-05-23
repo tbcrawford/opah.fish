@@ -11,7 +11,7 @@ function _opah_autoload_enabled -d "Return 0 when automatic secret loading is en
         return 0
     end
 
-    switch "$OPAH_AUTOLOAD"
+    switch (string lower -- "$OPAH_AUTOLOAD")
         case 0 false no off
             return 1
         case '*'

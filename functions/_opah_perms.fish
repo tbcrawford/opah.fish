@@ -43,3 +43,23 @@ function _opah_perms_owner_only -d "Return 0 when path permissions are owner-onl
 
     test (math $perms % 100) -eq 0
 end
+
+#
+# Return whether a directory has secure cache permissions (700)
+#
+# @param dir_path Directory path to inspect
+# @return 0 if permissions are 700, 1 otherwise
+#
+function _opah_perms_secure_cache_dir -d "Return 0 when directory permissions are 700"
+    set -l dir_path $argv[1]
+    set -l perms (_opah_perms "$dir_path")
+    if test $status -ne 0
+        return 1
+    end
+
+    if not string match -qr '^[0-7]+$' -- "$perms"
+        return 1
+    end
+
+    test "$perms" = 700
+end

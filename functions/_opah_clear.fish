@@ -55,6 +55,10 @@ function _opah_clear -d "Clear cached secrets and environment variables"
             continue
         end
 
+        if _opah_is_blocked_env_key "$key"
+            continue
+        end
+
         if set -q -- $key
             set -e -- $key 2>/dev/null
             _opah_info "Unset $key"
