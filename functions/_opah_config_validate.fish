@@ -1,3 +1,5 @@
+source (status dirname)/_opah_perms.fish
+
 #
 # Return whether a value is a 1Password secret reference
 #
